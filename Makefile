@@ -33,6 +33,17 @@ clean-build: clean build
 ## Run clean-build as a step before committing.
 precommit: clean-build lint
 
+.PHONY: check-env
+check-env:
+	@if [ -z "${MOMENTO_AUTHENTICATION}" ]; then \
+		echo "MOMENTO_AUTHENTICATION is not set"; \
+		exit 1; \
+	fi
+
+.PHONY: run
+run: check-env
+	cargo run -- config/momento_proxy.toml
+
 # See <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation.
 .PHONY: help
 help:
