@@ -28,8 +28,8 @@ impl ProxyMetricsBuilder {
         let (batch_sender, batch_receiver) = mpsc::channel(self.batch_capacity);
         let gauge_factory = default_gauge_factory();
 
-        let endpoint = get_environment_variable_or_none("MOMENTO_PROXY_OTLP_ENDPOINT");
-        let api_token = get_environment_variable_or_none("MOMENTO_PROXY_OTLP_API_TOKEN");
+        let endpoint = get_environment_variable_or_none("OTLP_ENDPOINT");
+        let api_token = get_environment_variable_or_none("OTLP_API_TOKEN");
 
         if endpoint.is_some() && api_token.is_some() {
             info!("Configuring OTLP downstream with provided endpoint and API token");
@@ -63,9 +63,9 @@ impl ProxyMetricsBuilder {
                 OpentelemetryBatcher,
             ));
         } else if endpoint.is_none() {
-            info!("OTLP endpoint not provided: not configuring OTLP downstream. Set the MOMENTO_PROXY_OTLP_ENDPOINT environment variable to configure.");
+            info!("OTLP endpoint not provided: not configuring OTLP downstream. Set the OTLP_ENDPOINT environment variable to configure.");
         } else {
-            info!("OTLP API token not provided, not configuring OTLP downstream. Set the MOMENTO_PROXY_OTLP_API_TOKEN environment variable to configure.");
+            info!("OTLP API token not provided, not configuring OTLP downstream. Set the OTLP_API_TOKEN environment variable to configure.");
         }
 
         let metrics = DefaultProxyMetrics {
