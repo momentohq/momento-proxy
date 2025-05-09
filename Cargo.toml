@@ -30,6 +30,10 @@ session = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317",
 storage-types = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "storage-types" }
 tokio = { version = "1.43.1", features = ["full"] }
 thiserror = "1.0.49"
+goodmetrics = "7.1.1"
+tokio-rustls = "0.26.2"
+webpki-roots = "1.0.0"
+tonic = "0.13.1"
 
 [profile.release]
 opt-level = 3
