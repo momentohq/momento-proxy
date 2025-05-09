@@ -25,6 +25,7 @@ momento = "0.50.4"
 pelikan-net = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "pelikan-net", features = ["metrics"] }
 protocol-admin = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "protocol-admin" }
 protocol-memcache = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "protocol-memcache" }
+# TODO: upgrade protocol-resp to revision with zset support
 protocol-resp = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "protocol-resp" }
 session = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "session" }
 storage-types = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "storage-types" }
