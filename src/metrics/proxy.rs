@@ -19,12 +19,16 @@ pub struct DefaultProxyMetrics {
     pub(crate) set: RpcMetrics,
     pub(crate) delete: RpcMetrics,
     pub(crate) unimplemented: RpcMetrics,
-    pub(crate) current_connections: SumHandle,
+    pub(crate) connections_opened: SumHandle,
+    pub(crate) connections_closed: SumHandle,
 }
 
 impl ProxyMetrics for DefaultProxyMetrics {
     fn begin_connection(&self) -> ConnectionGuard {
-        ConnectionGuard::new(self.current_connections.clone())
+        ConnectionGuard::new(
+            self.connections_opened.clone(),
+            self.connections_closed.clone(),
+        )
     }
 
     fn begin_get(&self) -> RpcCallGuard {

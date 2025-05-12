@@ -74,7 +74,8 @@ impl ProxyMetricsBuilder {
             set: RpcMetrics::new(gauge_factory, "set"),
             delete: RpcMetrics::new(gauge_factory, "delete"),
             unimplemented: RpcMetrics::new(gauge_factory, "unimplemented"),
-            current_connections: proxy_sum_gauge(gauge_factory, "current_connections"),
+            connections_opened: proxy_sum_gauge(gauge_factory, "connections_opened"),
+            connections_closed: proxy_sum_gauge(gauge_factory, "connections_closed"),
         };
 
         Arc::new(metrics)

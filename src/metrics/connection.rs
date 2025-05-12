@@ -1,20 +1,21 @@
 use goodmetrics::SumHandle;
 
 pub struct ConnectionGuard {
-    counter: SumHandle,
+    connections_closed: SumHandle,
 }
 
 impl ConnectionGuard {
-    /// Create a new guard, immediately bumping the counter.
-    pub fn new(counter: SumHandle) -> Self {
-        counter.observe(1);
-        Self { counter }
+    /// Creates a new `ConnectionGuard` instance.
+    /// This instance will increment the `connections_opened` counter
+    pub fn new(connections_opened: SumHandle, connections_closed: SumHandle) -> Self {
+        connections_opened.observe(1);
+        Self { connections_closed }
     }
 }
 
 impl Drop for ConnectionGuard {
     fn drop(&mut self) {
-        // -1 when this guard goes out of scope
-        self.counter.observe(-1);
+        // When the guard is dropped, we assume the connection is closed.
+        self.connections_closed.observe(1);
     }
 }
