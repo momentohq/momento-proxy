@@ -21,7 +21,7 @@ futures = "0.3.31"
 libc = "0.2.149"
 logger = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "logger" }
 metriken = "0.7.0"
-momento = "0.50.4"
+momento = "0.51.0"
 pelikan-net = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "pelikan-net", features = ["metrics"] }
 protocol-admin = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "protocol-admin" }
 protocol-memcache = { git = "https://github.com/pelikan-io/pelikan.git", rev = "3309d317", package = "protocol-memcache" }
