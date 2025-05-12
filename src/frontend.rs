@@ -266,28 +266,28 @@ async fn handle_memcache_request(
     let result = match request {
         memcache::Request::Delete(ref r) => {
             with_rpc_call_guard(
-                proxy_metrics.begin_delete(),
+                proxy_metrics.begin_memcached_delete(),
                 memcache::delete(&mut client, &cache_name, r),
             )
             .await
         }
         memcache::Request::Get(ref r) => {
             with_rpc_call_guard(
-                proxy_metrics.begin_get(),
+                proxy_metrics.begin_memcached_get(),
                 memcache::get(&mut client, &cache_name, r, flags),
             )
             .await
         }
         memcache::Request::Set(ref r) => {
             with_rpc_call_guard(
-                proxy_metrics.begin_set(),
+                proxy_metrics.begin_memcached_set(),
                 memcache::set(&mut client, &cache_name, r, flags),
             )
             .await
         }
         _ => {
             debug!("unsupported command: {}", request);
-            with_rpc_call_guard(proxy_metrics.begin_unimplemented(), async {
+            with_rpc_call_guard(proxy_metrics.begin_memcached_unimplemented(), async {
                 Err(Error::new(ErrorKind::Other, "unsupported"))
             })
             .await

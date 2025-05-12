@@ -7,18 +7,18 @@ use super::{RpcCallGuard, RpcMetrics};
 
 pub trait ProxyMetrics: Clone + Send + Sync + 'static {
     fn begin_connection(&self) -> ConnectionGuard;
-    fn begin_get(&self) -> RpcCallGuard;
-    fn begin_set(&self) -> RpcCallGuard;
-    fn begin_delete(&self) -> RpcCallGuard;
-    fn begin_unimplemented(&self) -> RpcCallGuard;
+    fn begin_memcached_get(&self) -> RpcCallGuard;
+    fn begin_memcached_set(&self) -> RpcCallGuard;
+    fn begin_memcached_delete(&self) -> RpcCallGuard;
+    fn begin_memcached_unimplemented(&self) -> RpcCallGuard;
 }
 
 #[derive(Clone, Debug)]
 pub struct DefaultProxyMetrics {
-    pub(crate) get: RpcMetrics,
-    pub(crate) set: RpcMetrics,
-    pub(crate) delete: RpcMetrics,
-    pub(crate) unimplemented: RpcMetrics,
+    pub(crate) memcached_get: RpcMetrics,
+    pub(crate) memcached_set: RpcMetrics,
+    pub(crate) memcached_delete: RpcMetrics,
+    pub(crate) memcached_unimplemented: RpcMetrics,
     pub(crate) connections_opened: SumHandle,
     pub(crate) connections_closed: SumHandle,
 }
@@ -31,20 +31,20 @@ impl ProxyMetrics for DefaultProxyMetrics {
         )
     }
 
-    fn begin_get(&self) -> RpcCallGuard {
-        self.get.record_api_call()
+    fn begin_memcached_get(&self) -> RpcCallGuard {
+        self.memcached_get.record_api_call()
     }
 
-    fn begin_set(&self) -> RpcCallGuard {
-        self.set.record_api_call()
+    fn begin_memcached_set(&self) -> RpcCallGuard {
+        self.memcached_set.record_api_call()
     }
 
-    fn begin_delete(&self) -> RpcCallGuard {
-        self.delete.record_api_call()
+    fn begin_memcached_delete(&self) -> RpcCallGuard {
+        self.memcached_delete.record_api_call()
     }
 
-    fn begin_unimplemented(&self) -> RpcCallGuard {
-        self.unimplemented.record_api_call()
+    fn begin_memcached_unimplemented(&self) -> RpcCallGuard {
+        self.memcached_unimplemented.record_api_call()
     }
 }
 
@@ -53,19 +53,19 @@ impl ProxyMetrics for Arc<DefaultProxyMetrics> {
         self.as_ref().begin_connection()
     }
 
-    fn begin_get(&self) -> RpcCallGuard {
-        self.as_ref().begin_get()
+    fn begin_memcached_get(&self) -> RpcCallGuard {
+        self.as_ref().begin_memcached_get()
     }
 
-    fn begin_set(&self) -> RpcCallGuard {
-        self.as_ref().begin_set()
+    fn begin_memcached_set(&self) -> RpcCallGuard {
+        self.as_ref().begin_memcached_set()
     }
 
-    fn begin_delete(&self) -> RpcCallGuard {
-        self.as_ref().begin_delete()
+    fn begin_memcached_delete(&self) -> RpcCallGuard {
+        self.as_ref().begin_memcached_delete()
     }
 
-    fn begin_unimplemented(&self) -> RpcCallGuard {
-        self.as_ref().begin_unimplemented()
+    fn begin_memcached_unimplemented(&self) -> RpcCallGuard {
+        self.as_ref().begin_memcached_unimplemented()
     }
 }

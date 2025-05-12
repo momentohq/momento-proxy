@@ -70,10 +70,10 @@ impl ProxyMetricsBuilder {
         }
 
         let metrics = DefaultProxyMetrics {
-            get: RpcMetrics::new(gauge_factory, "get"),
-            set: RpcMetrics::new(gauge_factory, "set"),
-            delete: RpcMetrics::new(gauge_factory, "delete"),
-            unimplemented: RpcMetrics::new(gauge_factory, "unimplemented"),
+            memcached_get: RpcMetrics::new(gauge_factory, "memcached_get"),
+            memcached_set: RpcMetrics::new(gauge_factory, "memcached_set"),
+            memcached_delete: RpcMetrics::new(gauge_factory, "memcached_delete"),
+            memcached_unimplemented: RpcMetrics::new(gauge_factory, "memcached_unimplemented"),
             connections_opened: proxy_sum_gauge(gauge_factory, "connections_opened"),
             connections_closed: proxy_sum_gauge(gauge_factory, "connections_closed"),
         };
