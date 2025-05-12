@@ -31,41 +31,42 @@ impl ProxyMetricsBuilder {
         let endpoint = get_environment_variable_or_none("OTLP_ENDPOINT");
         let api_token = get_environment_variable_or_none("OTLP_API_TOKEN");
 
-        if endpoint.is_some() && api_token.is_some() {
-            info!("Configuring OTLP downstream with provided endpoint and API token");
+        match (&endpoint, &api_token) {
+            (Some(endpoint), Some(api_token)) => {
+                info!("Configuring OTLP downstream with provided endpoint and API token");
 
-            // Set up the OTLP downstream
-            let channel = get_client(
-                endpoint.as_ref().unwrap(),
-                || {
-                    Some(RootCertStore {
-                        roots: webpki_roots::TLS_SERVER_ROOTS.to_vec()
-                    })
-                },
-                goodmetrics::proto::opentelemetry::collector::metrics::v1::metrics_service_client::MetricsServiceClient::with_origin
-            ).expect("Failed to create client");
+                // Set up the OTLP downstream
+                let channel = get_client(
+                    endpoint,
+                    || {
+                        Some(RootCertStore {
+                            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec()
+                        })
+                    },
+                    goodmetrics::proto::opentelemetry::collector::metrics::v1::metrics_service_client::MetricsServiceClient::with_origin
+                ).expect("Failed to create client");
 
-            // Set up the OTLP downstream
-            let otlp_downstream = OpenTelemetryDownstream::new_with_dimensions(
-                channel,
-                Some((
-                    "api-token",
-                    MetadataValue::try_from(api_token.as_ref().unwrap()).unwrap(),
-                )),
-                get_chronosphere_base_environment_dimensions(),
-            );
-            tokio::spawn(otlp_downstream.send_batches_forever(batch_receiver));
+                // Set up the OTLP downstream
+                let otlp_downstream = OpenTelemetryDownstream::new_with_dimensions(
+                    channel,
+                    Some(("api-token", MetadataValue::try_from(api_token).unwrap())),
+                    get_base_environment_dimensions(),
+                );
+                tokio::spawn(otlp_downstream.send_batches_forever(batch_receiver));
 
-            // Set up the OpenTelemetry batcher
-            tokio::spawn(gauge_factory.clone().report_gauges_forever(
-                self.batch_interval,
-                batch_sender,
-                OpentelemetryBatcher,
-            ));
-        } else if endpoint.is_none() {
-            info!("OTLP endpoint not provided: not configuring OTLP downstream. Set the OTLP_ENDPOINT environment variable to configure.");
-        } else {
-            info!("OTLP API token not provided, not configuring OTLP downstream. Set the OTLP_API_TOKEN environment variable to configure.");
+                // Set up the OpenTelemetry batcher
+                tokio::spawn(gauge_factory.clone().report_gauges_forever(
+                    self.batch_interval,
+                    batch_sender,
+                    OpentelemetryBatcher,
+                ));
+            }
+            (None, _) => {
+                info!("OTLP endpoint not provided: not configuring OTLP downstream. Set the OTLP_ENDPOINT environment variable to configure.");
+            }
+            (_, None) => {
+                info!("OTLP API token not provided, not configuring OTLP downstream. Set the OTLP_API_TOKEN environment variable to configure.");
+            }
         }
 
         let metrics = DefaultProxyMetrics {
@@ -80,10 +81,10 @@ impl ProxyMetricsBuilder {
     }
 }
 
-fn get_chronosphere_base_environment_dimensions() -> DimensionPosition {
+fn get_base_environment_dimensions() -> DimensionPosition {
     DimensionPosition::from_iter(
         vec![
-            // Chronosphere requires a standard Otel Collor `service.instance.id` and `service.name`
+            // We require a standard Otel Collector `service.instance.id` and `service.name`
             // dimensions in order to ingest metrics, otherwise they are rejected.
             // We don't really "need" a distinct value, we just need something, which
             // will default to `unknown`. If we need something in the future, we can
