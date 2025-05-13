@@ -49,10 +49,16 @@ pub async fn zadd(
 
         // Otherwise it's a regular ZADD call
         let mut converted_members: Vec<SortedSetElement<Vec<u8>>> = Vec::new();
-        for (score, member) in req.members() {
+        for element in req.members() {
             converted_members.push(SortedSetElement {
-                value: (**member).into(),
-                score: *score,
+                value: element.1.to_vec(),
+                score: if element.0 == f64::INFINITY {
+                    f64::MAX
+                } else if element.0 == f64::NEG_INFINITY {
+                    f64::MIN
+                } else {
+                    element.0
+                },
             })
         }
 
