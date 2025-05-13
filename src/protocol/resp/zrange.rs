@@ -77,11 +77,13 @@ pub async fn zrange(
                     _ => SortedSetOrder::Ascending,
                 };
 
-                // Momento accepts only inclusive min and max scores, so we add one if the boundary is exclusive
+                // Momento accepts only inclusive min and max scores, so we add one if the boundary is exclusive,
+                // so we add a small epsilon if the boundary is exclusive.
+                const EPSILON: f64 = 1e-9; // Small value to adjust for exclusive boundaries
                 let fetch_request = SortedSetFetchByScoreRequest::new(cache_name, req.key())
                     .order(order)
-                    .min_score(start + if exclusive_start { 1.0 } else { 0.0 })
-                    .max_score(stop + if exclusive_stop { 1.0 } else { 0.0 })
+                    .min_score(start + if exclusive_start { EPSILON } else { 0.0 })
+                    .max_score(stop - if exclusive_stop { EPSILON } else { 0.0 })
                     .offset(req.optional_args().offset.map(|o| o as u32))
                     .count(req.optional_args().count.map(|c| c as i32));
 
