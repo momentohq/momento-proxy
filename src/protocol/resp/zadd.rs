@@ -41,9 +41,9 @@ pub async fn zadd(
 
         // If INCR is set, then ZADD should behave like ZINCRBY (as per the docs), which accepts only a single score-member pair
         if req.optional_args().incr {
-            let zincry_request =
+            let zincrby_request =
                 SortedSetIncrement::new(req.key(), req.members()[0].0, &req.members()[0].1);
-            zincrby(client, cache_name, response_buf, &zincry_request).await?;
+            zincrby(client, cache_name, response_buf, &zincrby_request).await?;
             return Ok(());
         }
 
