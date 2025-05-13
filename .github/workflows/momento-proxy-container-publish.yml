@@ -56,7 +56,7 @@ jobs:
         run: docker save gomomento/momento-proxy:test > momento-proxy.tar
 
       - name: Upload image as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: momento-proxy.tar
