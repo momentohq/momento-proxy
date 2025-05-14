@@ -4,7 +4,9 @@
 
 use std::time::Duration;
 
-use momento::cache::{SortedSetFetchByScoreRequest, SortedSetFetchResponse, SortedSetOrder};
+use momento::cache::{
+    ScoreBound, SortedSetFetchByScoreRequest, SortedSetFetchResponse, SortedSetOrder,
+};
 use momento::CacheClient;
 use protocol_resp::RangeType;
 use protocol_resp::{SortedSetRange, ZRANGE, ZRANGE_EX, ZRANGE_HIT, ZRANGE_MISS};
@@ -77,13 +79,24 @@ pub async fn zrange(
                     _ => SortedSetOrder::Ascending,
                 };
 
-                // Momento accepts only inclusive min and max scores, so we add one if the boundary is exclusive,
-                // so we add a small epsilon if the boundary is exclusive.
-                const EPSILON: f64 = 1e-9; // Small value to adjust for exclusive boundaries
+                let min_score = match (start, exclusive_start) {
+                    (f64::NEG_INFINITY, _) => None,
+                    (f64::INFINITY, _) => Some(ScoreBound::Inclusive(f64::MAX)),
+                    (score, true) => Some(ScoreBound::Exclusive(score)),
+                    (score, false) => Some(ScoreBound::Inclusive(score)),
+                };
+
+                let max_score = match (stop, exclusive_stop) {
+                    (f64::INFINITY, _) => None,
+                    (f64::NEG_INFINITY, _) => Some(ScoreBound::Exclusive(f64::MIN)),
+                    (score, true) => Some(ScoreBound::Exclusive(score)),
+                    (score, false) => Some(ScoreBound::Inclusive(score)),
+                };
+
                 let fetch_request = SortedSetFetchByScoreRequest::new(cache_name, req.key())
                     .order(order)
-                    .min_score(start + if exclusive_start { EPSILON } else { 0.0 })
-                    .max_score(stop - if exclusive_stop { EPSILON } else { 0.0 })
+                    .min_score(min_score)
+                    .max_score(max_score)
                     .offset(req.optional_args().offset.map(|o| o as u32))
                     .count(req.optional_args().count.map(|c| c as i32));
 

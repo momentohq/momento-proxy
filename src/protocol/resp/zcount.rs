@@ -5,7 +5,7 @@
 use std::io::Write;
 use std::time::Duration;
 
-use momento::cache::{SortedSetLengthByScoreRequest, SortedSetLengthByScoreResponse};
+use momento::cache::{ScoreBound, SortedSetLengthByScoreRequest, SortedSetLengthByScoreResponse};
 use momento::CacheClient;
 use protocol_resp::{SortedSetCount, ZCOUNT, ZCOUNT_EX, ZCOUNT_HIT, ZCOUNT_MISS};
 use tokio::time;
@@ -25,16 +25,16 @@ pub async fn zcount(
     update_method_metrics(&ZCOUNT, &ZCOUNT_EX, async move {
         let min_score = match (req.min_score(), req.min_score_exclusive()) {
             (f64::NEG_INFINITY, _) => None,
-            (f64::INFINITY, _) => Some(f64::MAX), // Momento does not accept +inf, but accepts max f64
-            (score, true) => Some(score + 1.0),
-            (score, false) => Some(score),
+            (f64::INFINITY, _) => Some(ScoreBound::Inclusive(f64::MAX)), // Momento does not accept +inf, but accepts max f64
+            (score, true) => Some(ScoreBound::Exclusive(score)),
+            (score, false) => Some(ScoreBound::Inclusive(score)),
         };
 
         let max_score = match (req.max_score(), req.max_score_exclusive()) {
             (f64::INFINITY, _) => None,
-            (f64::NEG_INFINITY, _) => Some(f64::MIN), // Momento does not accept -inf, but accepts min f64
-            (score, true) => Some(score - 1.0),
-            (score, false) => Some(score),
+            (f64::NEG_INFINITY, _) => Some(ScoreBound::Exclusive(f64::MIN)), // Momento does not accept -inf, but accepts min f64
+            (score, true) => Some(ScoreBound::Exclusive(score)),
+            (score, false) => Some(ScoreBound::Inclusive(score)),
         };
 
         let request = SortedSetLengthByScoreRequest::new(cache_name, req.key())
