@@ -15,6 +15,10 @@ pub(crate) async fn listener(
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
 ) {
+    // Establishing a gRPC connection is expensive, so the client needs to be created outside the
+    // loop and reused to avoid paying that cost with each request. A Momento client can handle 100
+    // simultaneous requests per gRPC connection. Increase connection_count in the config to add
+    // more connections.
     let client = client_builder.clone().build().unwrap_or_else(|e| {
         // Note: this will not happen since we validated the client build in the main thread already
         eprintln!("could not create cache client: {}", e);
