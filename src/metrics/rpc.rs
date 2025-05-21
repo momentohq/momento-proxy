@@ -1,9 +1,8 @@
 use std::{
     future::Future,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, Ordering}, time::Instant,
 };
 
-use clocksource::coarse::Instant;
 use goodmetrics::{GaugeFactory, HistogramHandle};
 
 use super::util::{
