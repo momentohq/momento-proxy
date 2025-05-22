@@ -14,20 +14,20 @@ backtrace = "0.3.69"
 bytes = "1.7.2"
 clap = "4.4.6"
 clocksource = "0.8.1"
-common = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "common" }
-config = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "config" }
+common = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "common" }
+config = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "config" }
 crossbeam-channel = "0.5.15"
 futures = "0.3.31"
 libc = "0.2.149"
-logger = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "logger" }
+logger = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "logger" }
 metriken = "0.7.0"
 momento = "0.52.0"
-pelikan-net = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "pelikan-net", features = ["metrics"] }
-protocol-admin = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "protocol-admin" }
-protocol-memcache = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "protocol-memcache" }
-protocol-resp = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "protocol-resp" }
-session = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "session" }
-storage-types = { git = "https://github.com/pelikan-io/pelikan.git", rev = "b9031ed", package = "storage-types" }
+pelikan-net = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "pelikan-net", features = ["metrics"] }
+protocol-admin = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "protocol-admin" }
+protocol-memcache = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "protocol-memcache" }
+protocol-resp = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "protocol-resp" }
+session = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "session" }
+storage-types = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "storage-types" }
 tokio = { version = "1.43.1", features = ["full"] }
 thiserror = "1.0.49"
 goodmetrics = "7.1.1"
