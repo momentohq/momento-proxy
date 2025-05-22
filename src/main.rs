@@ -6,9 +6,10 @@
 extern crate logger;
 
 use cache::MCache;
-use ::config::{AdminConfig, MomentoProxyConfig, TimeType};
+use ::config::{AdminConfig, TimeType};
 use backtrace::Backtrace;
 use clap::{Arg, Command};
+use momento_proxy::MomentoProxyConfig;
 use core::num::NonZeroUsize;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::time::Duration;
@@ -43,6 +44,7 @@ mod frontend;
 mod klog;
 mod listener;
 mod metrics;
+mod momento_proxy;
 mod protocol;
 
 pub use metrics::*;

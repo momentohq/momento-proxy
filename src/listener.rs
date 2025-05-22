@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::*;
-use ::config::momento_proxy::Protocol;
+use momento_proxy::Protocol;
 use momento::CacheClientBuilder;
 use pelikan_net::{TCP_ACCEPT, TCP_CLOSE, TCP_CONN_CURR};
 

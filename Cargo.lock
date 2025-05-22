@@ -1414,11 +1414,13 @@ dependencies = [
  "protocol-admin",
  "protocol-memcache",
  "protocol-resp",
+ "serde",
  "session",
  "storage-types",
  "thiserror",
  "tokio",
  "tokio-rustls 0.26.2",
+ "toml",
  "tonic 0.13.1",
  "webpki-roots 1.0.0",
 ]
