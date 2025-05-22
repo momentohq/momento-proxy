@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::cache::CacheValue;
 use crate::klog::{klog_1, Status};
 use crate::{Error, *};
 use futures::StreamExt;
@@ -13,15 +14,34 @@ pub async fn get(
     cache_name: &str,
     request: &Get,
     flags: bool,
+    memory_cache: Option<MCache>,
 ) -> Result<Response, Error> {
     let mut tasks = futures::stream::FuturesOrdered::new();
+    let mut eager_hits = Vec::new();
     for key in request.keys() {
-        BACKEND_REQUEST.increment();
-
-        tasks.push_back(run_get(client, cache_name, flags, key));
+        if let Some(memory_cache) = &memory_cache {
+            match memory_cache.get(&**key) {
+                Some(hit) => eager_hits.push(match hit.into_value() {
+                    cache::CacheValue::Memcached { value } => value,
+                }),
+                None => {
+                    BACKEND_REQUEST.increment();
+                    tasks.push_back(run_get(client, cache_name, flags, key));
+                }
+            }
+        } else {
+            BACKEND_REQUEST.increment();
+            tasks.push_back(run_get(client, cache_name, flags, key));
+        }
     }
-    let values: Vec<Option<protocol_memcache::Value>> = tasks.collect().await;
-    let values: Vec<protocol_memcache::Value> = values.into_iter().flatten().collect();
+    let values_from_upstream: Vec<Option<protocol_memcache::Value>> = tasks.collect().await;
+    let mut values: Vec<protocol_memcache::Value> = values_from_upstream.into_iter().flatten().collect();
+    if let Some(memory_cache) = &memory_cache {
+        for value in values.iter() {
+            memory_cache.set(value.key().to_vec(), CacheValue::Memcached { value: value.clone() });
+        }
+    }
+    values.extend(eager_hits);
 
     if !values.is_empty() {
         Ok(Response::values(values.into()))

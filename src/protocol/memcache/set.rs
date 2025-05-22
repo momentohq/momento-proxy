@@ -12,6 +12,7 @@ pub async fn set(
     cache_name: &str,
     request: &Set,
     flags: bool,
+    memory_cache: Option<MCache>,
 ) -> Result<Response, Error> {
     SET.increment();
 
@@ -28,6 +29,11 @@ pub async fn set(
     } else {
         (*request.value()).to_owned()
     };
+
+    if let Some(memory_cache) = &memory_cache {
+        // TODO: This invalidates the cache entry, but we could probably just update it in place
+        memory_cache.delete(&key);
+    }
 
     BACKEND_REQUEST.increment();
 

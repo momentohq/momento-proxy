@@ -19,6 +19,7 @@ pub(crate) async fn handle_memcache_client(
     cache_name: String,
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
+    memory_cache: Option<MCache>,
 ) {
     debug!("accepted memcache client, waiting for first byte to detect text or binary");
 
@@ -40,6 +41,7 @@ pub(crate) async fn handle_memcache_client(
                         protocol_memcache::BinaryProtocol::default(),
                         flags,
                         proxy_metrics,
+                        memory_cache,
                     )
                     .await;
                     return;
@@ -51,6 +53,7 @@ pub(crate) async fn handle_memcache_client(
                         protocol_memcache::TextProtocol::default(),
                         flags,
                         proxy_metrics,
+                        memory_cache,
                     )
                     .await;
                     return;
@@ -79,6 +82,7 @@ pub(crate) async fn handle_memcache_client_concrete(
         + 'static,
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
+    memory_cache: Option<MCache>,
 ) {
     debug!("accepted memcache binary client");
 
@@ -206,6 +210,7 @@ pub(crate) async fn handle_memcache_client_concrete(
                     let sequence = sequence.fetch_add(1, Ordering::Relaxed);
 
                     let proxy_metrics = proxy_metrics.clone();
+                    let memory_cache = memory_cache.clone();
                     tokio::spawn(async move {
                         handle_memcache_request(
                             sender,
@@ -215,6 +220,7 @@ pub(crate) async fn handle_memcache_client_concrete(
                             request,
                             flags,
                             proxy_metrics,
+                            memory_cache,
                         )
                         .await;
                     });
@@ -262,9 +268,13 @@ async fn handle_memcache_request(
     request: protocol_memcache::Request,
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
+    memory_cache: Option<MCache>,
 ) {
     let result = match request {
         memcache::Request::Delete(ref r) => {
+            if let Some(memory_cache) = memory_cache {
+                memory_cache.delete(r.key());
+            }
             with_rpc_call_guard(
                 proxy_metrics.begin_memcached_delete(),
                 memcache::delete(&mut client, &cache_name, r),
@@ -274,14 +284,14 @@ async fn handle_memcache_request(
         memcache::Request::Get(ref r) => {
             with_rpc_call_guard(
                 proxy_metrics.begin_memcached_get(),
-                memcache::get(&mut client, &cache_name, r, flags),
+                memcache::get(&mut client, &cache_name, r, flags, memory_cache),
             )
             .await
         }
         memcache::Request::Set(ref r) => {
             with_rpc_call_guard(
                 proxy_metrics.begin_memcached_set(),
-                memcache::set(&mut client, &cache_name, r, flags),
+                memcache::set(&mut client, &cache_name, r, flags, memory_cache),
             )
             .await
         }

@@ -5,6 +5,7 @@
 #[macro_use]
 extern crate logger;
 
+use cache::MCache;
 use ::config::{AdminConfig, MomentoProxyConfig, TimeType};
 use backtrace::Backtrace;
 use clap::{Arg, Command};
@@ -36,6 +37,7 @@ const S: u64 = 1_000_000_000; // one second in nanoseconds
 const US: u64 = 1_000; // one microsecond in nanoseconds
 
 mod admin;
+mod cache;
 mod error;
 mod frontend;
 mod klog;
@@ -312,6 +314,19 @@ async fn spawn(
             );
             let tcp_listener =
                 TcpListener::from_std(tcp_listener).expect("could not convert to tokio listener");
+
+            let local_cache_bytes = cache.memory_cache_bytes();
+            let local_cache = if 0 < local_cache_bytes {
+                let ttl = if cache.memory_cache_ttl_seconds() == 0 {
+                    Duration::MAX
+                } else {
+                    Duration::from_secs(cache.memory_cache_ttl_seconds() as u64)
+                };
+                Some(MCache::new(cache.memory_cache_bytes(), ttl))
+            } else {
+                None
+            };
+
             listener::listener(
                 tcp_listener,
                 client_builder,
@@ -319,6 +334,7 @@ async fn spawn(
                 cache.protocol(),
                 cache.flags(),
                 proxy_metrics,
+                local_cache,
             )
             .await;
         });

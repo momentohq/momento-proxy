@@ -24,6 +24,12 @@ default_ttl = 900
 # The number of connections to the service for this cache.
 # Defaults to 4
 # connection_count = 4
+# The amount of ram to try to use locally caching get results (only supported on memcached currently)
+# 0 to disable
+# memory_cache_bytes = 0
+# How long to keep get results in memory (only supported on memcached currently)
+# 0 means no expiration
+# memory_cache_ttl_seconds = 0
 # the protocol can be "memcache" or "resp" (Redis), the default is memcache
 # protocol = "memcache"
 
