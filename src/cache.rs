@@ -78,7 +78,7 @@ impl MCache {
             .weigher(weigh)
             .expire_after(MCacheExpiry)
             .build();
-        Self { cache, ttl }
+        Self { cache, ttl: std::cmp::min(ttl, Duration::from_secs(5 * 365 * 24 * 3600)) }
     }
 
     pub fn get<Q>(&self, key: &Q) -> Option<CacheEntry>
