@@ -16,6 +16,34 @@ fn proxy_request_latency_histogram(
     )
 }
 
+fn proxy_hit_response_latency_histogram(
+    gauge_factory: &GaugeFactory,
+    rpc: &'static str,
+    result: &'static str,
+    source: &'static str, // momento or mcache
+) -> HistogramHandle {
+    gauge_factory.dimensioned_gauge_histogram(
+        "momento_proxy",
+        "latency",
+        GaugeDimensions::new([("rpc", rpc), ("result", result), ("source", source)]),
+    )
+}
+
+pub fn proxy_request_latency_hit_histogram(
+    g: &GaugeFactory,
+    rpc: &'static str,
+    source: &'static str,
+) -> HistogramHandle {
+    proxy_hit_response_latency_histogram(g, rpc, "hit", source)
+}
+
+pub fn proxy_request_latency_miss_histogram(
+    g: &GaugeFactory,
+    rpc: &'static str,
+) -> HistogramHandle {
+    proxy_request_latency_histogram(g, rpc, "miss")
+}
+
 pub fn proxy_request_latency_ok_histogram(g: &GaugeFactory, rpc: &'static str) -> HistogramHandle {
     proxy_request_latency_histogram(g, rpc, "ok")
 }

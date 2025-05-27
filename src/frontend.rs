@@ -282,9 +282,24 @@ async fn handle_memcache_request(
             .await
         }
         memcache::Request::Get(ref r) => {
+            // Create closures to allow memcached::get() to record latency metrics for hit/miss responses
+            let recorder = proxy_metrics.begin_memcached_get();
+            let record_latency_miss_closure = || recorder.clone().complete_miss();
+            let record_latency_hit_mcache_closure = || recorder.clone().complete_hit_mcache();
+            let record_latency_hit_momento_closure = || recorder.clone().complete_hit_momento();
+
             with_rpc_call_guard(
-                proxy_metrics.begin_memcached_get(),
-                memcache::get(&mut client, &cache_name, r, flags, memory_cache),
+                recorder.clone(),
+                memcache::get(
+                    &mut client,
+                    &cache_name,
+                    r,
+                    flags,
+                    memory_cache,
+                    record_latency_miss_closure,
+                    record_latency_hit_mcache_closure,
+                    record_latency_hit_momento_closure,
+                ),
             )
             .await
         }
