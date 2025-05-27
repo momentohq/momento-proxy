@@ -85,7 +85,7 @@ async fn run_get(
     latency_miss: impl Fn(),
     latency_hit_momento: impl Fn(),
 ) -> Option<protocol_memcache::Value> {
-    match timeout(Duration::from_millis(500), client.get(cache_name, key)).await {
+    match timeout(Duration::from_millis(200), client.get(cache_name, key)).await {
         Ok(Ok(response)) => match response {
             GetResponse::Hit { value } => {
                 GET_KEY_HIT.increment();
