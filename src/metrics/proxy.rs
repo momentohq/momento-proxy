@@ -34,6 +34,7 @@ impl ProxyMetrics for DefaultProxyMetrics {
             .active_connections_counter
             .fetch_add(1, Ordering::Relaxed);
         self.total_active_connections.observe(count as i64);
+        debug!("Incrementing active connections: {}", count+1);
         let total_active_connections = self.total_active_connections.clone();
         let active_connections_counter = self.active_connections_counter.clone();
         ConnectionGuard::new(
@@ -42,6 +43,7 @@ impl ProxyMetrics for DefaultProxyMetrics {
             move || {
                 let count = active_connections_counter.fetch_sub(1, Ordering::Relaxed);
                 total_active_connections.observe(count as i64);
+                debug!("Decrementing active connections: {}", count+1);
             },
         )
     }

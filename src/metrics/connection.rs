@@ -6,10 +6,8 @@ pub struct ConnectionGuard {
 }
 
 impl ConnectionGuard {
-    /// Creates a new `ConnectionGuard` instance.
-    /// This instance will increment the `connections_opened` counter,
-    /// and it will increment the `connections_closed` counter and decrement
-    /// the `total_active_connections` counter when the guard is dropped.
+    /// Creates a new `ConnectionGuard` instance and increments the `total_active_connections` counter.
+    /// Decrements the `total_active_connections` counter when the `ConnectionGuard` is dropped.
     pub fn new(
         connections_opened: SumHandle,
         connections_closed: SumHandle,
