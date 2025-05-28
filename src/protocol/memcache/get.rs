@@ -15,12 +15,11 @@ pub async fn get(
     request: &Get,
     flags: bool,
     memory_cache: Option<MCache>,
-    latency_miss: impl Fn() + Clone,
-    latency_hit_mcache: impl Fn() + Clone,
-    latency_hit_momento: impl Fn() + Clone,
+    recorder: &RpcCallGuard,
 ) -> Result<Response, Error> {
     let mut tasks = futures::stream::FuturesOrdered::new();
     let mut eager_hits = Vec::new();
+    let mut recorder_clone = recorder.clone();
     for key in request.keys() {
         if let Some(memory_cache) = &memory_cache {
             match memory_cache.get(&**key) {
@@ -29,7 +28,7 @@ pub async fn get(
                         cache::CacheValue::Memcached { value } => value,
                     });
                     debug!("eager hit for key {:?}", key);
-                    latency_hit_mcache();
+                    recorder_clone.complete_hit_mcache();
                 }
                 None => {
                     BACKEND_REQUEST.increment();
@@ -38,8 +37,7 @@ pub async fn get(
                         cache_name,
                         flags,
                         key,
-                        latency_miss.clone(),
-                        latency_hit_momento.clone(),
+                        recorder
                     ));
                 }
             }
@@ -50,8 +48,7 @@ pub async fn get(
                 cache_name,
                 flags,
                 key,
-                latency_miss.clone(),
-                latency_hit_momento.clone(),
+                recorder
             ));
         }
     }
@@ -82,9 +79,9 @@ async fn run_get(
     cache_name: &str,
     flags: bool,
     key: &[u8],
-    latency_miss: impl Fn(),
-    latency_hit_momento: impl Fn(),
+    recorder: &RpcCallGuard,
 ) -> Option<protocol_memcache::Value> {
+    let mut recorder_clone = recorder.clone();
     match timeout(Duration::from_millis(200), client.get(cache_name, key)).await {
         Ok(Ok(response)) => match response {
             GetResponse::Hit { value } => {
@@ -93,7 +90,7 @@ async fn run_get(
                 let value: Vec<u8> = value.into();
 
                 if flags && value.len() < 5 {
-                    latency_miss();
+                    recorder_clone.complete_miss();
                     klog_1(&"get", &key, Status::Miss, 0);
                     None
                 } else if flags {
@@ -101,13 +98,13 @@ async fn run_get(
                     let value: Vec<u8> = value[4..].into();
                     let length = value.len();
 
-                    latency_hit_momento();
+                    recorder_clone.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
                     Some(protocol_memcache::Value::new(key, flags, None, &value))
                 } else {
                     let length = value.len();
 
-                    latency_hit_momento();
+                    recorder_clone.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
                     Some(protocol_memcache::Value::new(key, 0, None, &value))
                 }
@@ -115,7 +112,7 @@ async fn run_get(
             GetResponse::Miss => {
                 GET_KEY_MISS.increment();
 
-                latency_miss();
+                recorder_clone.complete_miss();
                 klog_1(&"get", &key, Status::Miss, 0);
                 None
             }
