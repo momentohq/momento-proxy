@@ -15,13 +15,18 @@ impl ConnectionGuard {
         connections_opened: SumHandle,
         connections_closed: SumHandle,
         total_active_connections: SumHandle,
+        active_connections_counter: Arc<AtomicI64>,
     ) -> Self {
         connections_opened.observe(1);
-        total_active_connections.observe(1);
+        let count = active_connections_counter.fetch_add(1, Ordering::Relaxed);
+        let current_count = count+1;
+        total_active_connections.observe(current_count as i64);
+        debug!("Incrementing total active connections: {}", current_count);
+
         Self {
             connections_closed,
             total_active_connections,
-            active_connections_counter: Arc::new(std::sync::atomic::AtomicI64::new(1)),
+            active_connections_counter,
         }
     }
 }
@@ -35,5 +40,6 @@ impl Drop for ConnectionGuard {
         let count = self.active_connections_counter.fetch_sub(1, Ordering::Relaxed);
         let current_count = count-1;
         self.total_active_connections.observe(current_count as i64);
+        debug!("Decrementing total active connections: {}", current_count);
     }
 }
