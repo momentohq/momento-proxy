@@ -1,5 +1,5 @@
 use std::sync::{
-    atomic::AtomicI64, Arc
+    Arc
 };
 
 use super::ConnectionGuard;
@@ -24,7 +24,6 @@ pub struct DefaultProxyMetrics {
     pub(crate) connections_opened: SumHandle,
     pub(crate) connections_closed: SumHandle,
     pub(crate) total_active_connections: SumHandle,
-    pub(crate) active_connections_counter: Arc<AtomicI64>,
 }
 
 impl ProxyMetrics for DefaultProxyMetrics {
@@ -33,7 +32,6 @@ impl ProxyMetrics for DefaultProxyMetrics {
             self.connections_opened.clone(),
             self.connections_closed.clone(),
             self.total_active_connections.clone(),
-            self.active_connections_counter.clone(),
         )
     }
 

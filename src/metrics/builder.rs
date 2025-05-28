@@ -77,7 +77,6 @@ impl ProxyMetricsBuilder {
             connections_opened: proxy_sum_gauge(gauge_factory, "connections_opened"),
             connections_closed: proxy_sum_gauge(gauge_factory, "connections_closed"),
             total_active_connections: proxy_sum_gauge(gauge_factory, "total_active_connections"),
-            active_connections_counter: Arc::new(std::sync::atomic::AtomicI64::new(0)),
         };
 
         Arc::new(metrics)
