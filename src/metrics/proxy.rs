@@ -1,6 +1,4 @@
-use std::sync::{
-    Arc
-};
+use std::sync::{atomic::AtomicI64, Arc};
 
 use super::ConnectionGuard;
 use goodmetrics::SumHandle;
@@ -23,7 +21,7 @@ pub struct DefaultProxyMetrics {
     pub(crate) memcached_unimplemented: RpcMetrics,
     pub(crate) connections_opened: SumHandle,
     pub(crate) connections_closed: SumHandle,
-    pub(crate) total_active_connections: SumHandle,
+    pub(crate) total_active_connections_count: Arc<AtomicI64>,
 }
 
 impl ProxyMetrics for DefaultProxyMetrics {
@@ -31,7 +29,7 @@ impl ProxyMetrics for DefaultProxyMetrics {
         ConnectionGuard::new(
             self.connections_opened.clone(),
             self.connections_closed.clone(),
-            self.total_active_connections.clone(),
+            self.total_active_connections_count.clone(),
         )
     }
 

@@ -5,11 +5,10 @@
 #[macro_use]
 extern crate logger;
 
-use cache::MCache;
 use ::config::{AdminConfig, TimeType};
 use backtrace::Backtrace;
+use cache::MCache;
 use clap::{Arg, Command};
-use momento_proxy::MomentoProxyConfig;
 use core::num::NonZeroUsize;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::time::Duration;
@@ -17,6 +16,7 @@ use logger::configure_logging;
 use metriken::*;
 use momento::cache::{configurations, CollectionTtl};
 use momento::*;
+use momento_proxy::MomentoProxyConfig;
 use pelikan_net::{TCP_RECV_BYTE, TCP_SEND_BYTE};
 use protocol_admin::*;
 use session::*;

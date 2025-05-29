@@ -32,24 +32,12 @@ pub async fn get(
                 }
                 None => {
                     BACKEND_REQUEST.increment();
-                    tasks.push_back(run_get(
-                        client,
-                        cache_name,
-                        flags,
-                        key,
-                        recorder
-                    ));
+                    tasks.push_back(run_get(client, cache_name, flags, key, recorder));
                 }
             }
         } else {
             BACKEND_REQUEST.increment();
-            tasks.push_back(run_get(
-                client,
-                cache_name,
-                flags,
-                key,
-                recorder
-            ));
+            tasks.push_back(run_get(client, cache_name, flags, key, recorder));
         }
     }
     let values_from_upstream: Vec<Option<protocol_memcache::Value>> = tasks.collect().await;

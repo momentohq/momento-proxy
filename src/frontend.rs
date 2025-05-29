@@ -285,14 +285,7 @@ async fn handle_memcache_request(
             let recorder = proxy_metrics.begin_memcached_get();
             with_rpc_call_guard(
                 recorder.clone(),
-                memcache::get(
-                    &mut client,
-                    &cache_name,
-                    r,
-                    flags,
-                    memory_cache,
-                    &recorder,
-                ),
+                memcache::get(&mut client, &cache_name, r, flags, memory_cache, &recorder),
             )
             .await
         }

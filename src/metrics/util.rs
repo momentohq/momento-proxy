@@ -1,7 +1,11 @@
-use goodmetrics::{GaugeDimensions, GaugeFactory, HistogramHandle, SumHandle};
+use goodmetrics::{GaugeDimensions, GaugeFactory, HistogramHandle, StatisticSetHandle, SumHandle};
 
 pub fn proxy_sum_gauge(g: &GaugeFactory, name: &'static str) -> SumHandle {
     g.dimensioned_gauge_sum("momento_proxy", name, Default::default())
+}
+
+pub fn proxy_statistic_set_gauge(g: &GaugeFactory, name: &'static str) -> StatisticSetHandle {
+    g.dimensioned_gauge_statistic_set("momento_proxy", name, Default::default())
 }
 
 fn proxy_request_latency_histogram(

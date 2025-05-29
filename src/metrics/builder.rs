@@ -3,13 +3,20 @@ use goodmetrics::{
     downstream::{get_client, OpenTelemetryDownstream, OpentelemetryBatcher},
     pipeline::DimensionPosition,
 };
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicI64, Ordering},
+    Arc,
+};
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_rustls::rustls::RootCertStore;
 use tonic::metadata::MetadataValue;
 
-use super::{proxy::DefaultProxyMetrics, util::proxy_sum_gauge, RpcMetrics};
+use super::{
+    proxy::DefaultProxyMetrics,
+    util::{proxy_statistic_set_gauge, proxy_sum_gauge},
+    RpcMetrics,
+};
 
 pub struct ProxyMetricsBuilder {
     batch_interval: Duration,
@@ -69,6 +76,20 @@ impl ProxyMetricsBuilder {
             }
         }
 
+        // Keep track of the total number of active connections to the proxy
+        let total_active_connections_count = Arc::new(AtomicI64::new(0));
+        let total_active_connections =
+            proxy_statistic_set_gauge(gauge_factory, "total_active_connections");
+
+        // Emit the total active connections count every batch_interval seconds
+        let count_clone = total_active_connections_count.clone();
+        tokio::spawn(async move {
+            loop {
+                total_active_connections.observe(count_clone.load(Ordering::Relaxed));
+                tokio::time::sleep(self.batch_interval).await;
+            }
+        });
+
         let metrics = DefaultProxyMetrics {
             memcached_get: RpcMetrics::new(gauge_factory, "memcached_get"),
             memcached_set: RpcMetrics::new(gauge_factory, "memcached_set"),
@@ -76,7 +97,8 @@ impl ProxyMetricsBuilder {
             memcached_unimplemented: RpcMetrics::new(gauge_factory, "memcached_unimplemented"),
             connections_opened: proxy_sum_gauge(gauge_factory, "connections_opened"),
             connections_closed: proxy_sum_gauge(gauge_factory, "connections_closed"),
-            total_active_connections: proxy_sum_gauge(gauge_factory, "total_active_connections"),
+            // Connections opening and closing should also update total_active_connections_count
+            total_active_connections_count,
         };
 
         Arc::new(metrics)

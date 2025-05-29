@@ -1,8 +1,10 @@
 use std::{
-    borrow::Borrow, mem::size_of, time::{Duration, Instant, SystemTime, UNIX_EPOCH}
+    borrow::Borrow,
+    mem::size_of,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-use moka::{Expiry, sync::Cache};
+use moka::{sync::Cache, Expiry};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CacheValue {
@@ -78,11 +80,14 @@ impl MCache {
             .weigher(weigh)
             .expire_after(MCacheExpiry)
             .build();
-        Self { cache, ttl: std::cmp::min(ttl, Duration::from_secs(5 * 365 * 24 * 3600)) }
+        Self {
+            cache,
+            ttl: std::cmp::min(ttl, Duration::from_secs(5 * 365 * 24 * 3600)),
+        }
     }
 
     pub fn get<Q>(&self, key: &Q) -> Option<CacheEntry>
-    where 
+    where
         KeyType: Borrow<Q>,
         Q: std::hash::Hash + Eq + ?Sized,
     {
@@ -100,7 +105,7 @@ impl MCache {
     }
 
     pub fn delete<Q>(&self, key: &Q) -> Option<CacheValue>
-    where 
+    where
         KeyType: Borrow<Q>,
         Q: std::hash::Hash + Eq + ?Sized,
     {
