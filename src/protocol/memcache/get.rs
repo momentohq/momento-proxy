@@ -19,7 +19,7 @@ pub async fn get(
 ) -> Result<Response, Error> {
     let mut tasks = futures::stream::FuturesOrdered::new();
     let mut eager_hits = Vec::new();
-    let mut recorder_clone = recorder.clone();
+    let mut mcache_recorder = recorder.clone();
     for key in request.keys() {
         if let Some(memory_cache) = &memory_cache {
             match memory_cache.get(&**key) {
@@ -28,7 +28,7 @@ pub async fn get(
                         cache::CacheValue::Memcached { value } => value,
                     });
                     debug!("eager hit for key {:?}", key);
-                    recorder_clone.complete_hit_mcache();
+                    mcache_recorder.complete_hit_mcache();
                 }
                 None => {
                     BACKEND_REQUEST.increment();
