@@ -1,7 +1,16 @@
-use std::sync::{atomic::AtomicI64, Arc};
+use std::{
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 
-use super::ConnectionGuard;
-use goodmetrics::SumHandle;
+use super::{
+    util::{proxy_statistic_set_gauge, proxy_sum_gauge},
+    ConnectionGuard,
+};
+use goodmetrics::{GaugeFactory, SumHandle};
 
 use super::{RpcCallGuard, RpcMetrics};
 
@@ -22,6 +31,35 @@ pub struct DefaultProxyMetrics {
     pub(crate) connections_opened: SumHandle,
     pub(crate) connections_closed: SumHandle,
     pub(crate) total_active_connections_count: Arc<AtomicI64>,
+}
+
+impl DefaultProxyMetrics {
+    pub(crate) fn new(gauge_factory: &GaugeFactory, batch_interval: Duration) -> Self {
+        // Keep track of the total number of active connections to the proxy
+        let total_active_connections_count = Arc::new(AtomicI64::new(0));
+        let total_active_connections =
+            proxy_statistic_set_gauge(gauge_factory, "total_active_connections");
+
+        // Emit the total active connections count every batch_interval seconds
+        let count_clone = total_active_connections_count.clone();
+        tokio::spawn(async move {
+            loop {
+                total_active_connections.observe(count_clone.load(Ordering::Relaxed));
+                tokio::time::sleep(batch_interval).await;
+            }
+        });
+
+        // Create the remaining gauge handles
+        Self {
+            memcached_get: RpcMetrics::new(gauge_factory, "memcached_get"),
+            memcached_set: RpcMetrics::new(gauge_factory, "memcached_set"),
+            memcached_delete: RpcMetrics::new(gauge_factory, "memcached_delete"),
+            memcached_unimplemented: RpcMetrics::new(gauge_factory, "memcached_unimplemented"),
+            connections_opened: proxy_sum_gauge(gauge_factory, "connections_opened"),
+            connections_closed: proxy_sum_gauge(gauge_factory, "connections_closed"),
+            total_active_connections_count,
+        }
+    }
 }
 
 impl ProxyMetrics for DefaultProxyMetrics {
