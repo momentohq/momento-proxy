@@ -81,7 +81,7 @@ async fn run_get(
     key: &[u8],
     recorder: &RpcCallGuard,
 ) -> Option<protocol_memcache::Value> {
-    let mut recorder_clone = recorder.clone();
+    let mut recorder = recorder.clone();
     match timeout(Duration::from_millis(200), client.get(cache_name, key)).await {
         Ok(Ok(response)) => match response {
             GetResponse::Hit { value } => {
@@ -90,7 +90,7 @@ async fn run_get(
                 let value: Vec<u8> = value.into();
 
                 if flags && value.len() < 5 {
-                    recorder_clone.complete_miss();
+                    recorder.complete_miss();
                     klog_1(&"get", &key, Status::Miss, 0);
                     None
                 } else if flags {
@@ -98,13 +98,13 @@ async fn run_get(
                     let value: Vec<u8> = value[4..].into();
                     let length = value.len();
 
-                    recorder_clone.complete_hit_momento();
+                    recorder.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
                     Some(protocol_memcache::Value::new(key, flags, None, &value))
                 } else {
                     let length = value.len();
 
-                    recorder_clone.complete_hit_momento();
+                    recorder.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
                     Some(protocol_memcache::Value::new(key, 0, None, &value))
                 }
@@ -112,7 +112,7 @@ async fn run_get(
             GetResponse::Miss => {
                 GET_KEY_MISS.increment();
 
-                recorder_clone.complete_miss();
+                recorder.complete_miss();
                 klog_1(&"get", &key, Status::Miss, 0);
                 None
             }
