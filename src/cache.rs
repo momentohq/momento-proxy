@@ -1,10 +1,12 @@
 use std::{
     borrow::Borrow,
+    hash::RandomState,
     mem::size_of,
+    sync::Arc,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-use moka::{sync::Cache, Expiry};
+use k_cache::SegmentedCache;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CacheValue {
@@ -34,54 +36,31 @@ impl CacheEntry {
 
 #[derive(Clone)]
 pub struct MCache {
-    cache: Cache<KeyType, CacheEntry>,
+    cache: Arc<SegmentedCache<KeyType, CacheEntry, RandomState, BytesWeight>>,
     ttl: Duration,
 }
 
-fn weigh(key: &KeyType, value: &CacheEntry) -> u32 {
-    (key.len()
-        + match &value.value {
-            CacheValue::Memcached { value } => value.len().unwrap_or_default(),
-        }
-        + size_of::<protocol_memcache::Value>()) as u32
-}
+#[derive(Debug, Clone, Copy)]
+struct BytesWeight;
 
-struct MCacheExpiry;
+impl k_cache::Weigher<KeyType, CacheEntry> for BytesWeight {
+    fn weigh(key: &KeyType, value: &CacheEntry) -> usize {
+        key.len()
+            + match &value.value {
+                CacheValue::Memcached { value } => value.len().unwrap_or_default(),
+            }
+            + size_of::<protocol_memcache::Value>()
+    }
+}
 
 type KeyType = Vec<u8>;
 
-impl Expiry<KeyType, CacheEntry> for MCacheExpiry {
-    /// Returns the duration of the expiration of the value that was just
-    /// created.
-    fn expire_after_create(
-        &self,
-        _key: &KeyType,
-        value: &CacheEntry,
-        current_time: Instant,
-    ) -> Option<Duration> {
-        Some(value.expire_at.saturating_duration_since(current_time))
-    }
-
-    fn expire_after_update(
-        &self,
-        _key: &KeyType,
-        value: &CacheEntry,
-        updated_at: Instant,
-        _duration_until_expiry: Option<Duration>,
-    ) -> Option<Duration> {
-        Some(value.expire_at.saturating_duration_since(updated_at))
-    }
-}
-
 impl MCache {
     pub fn new(max_bytes: usize, ttl: Duration) -> Self {
-        let cache = Cache::builder()
-            .max_capacity(max_bytes as u64)
-            .weigher(weigh)
-            .expire_after(MCacheExpiry)
-            .build();
+        let cache =
+            SegmentedCache::<KeyType, CacheEntry, RandomState, BytesWeight>::new(8, max_bytes);
         Self {
-            cache,
+            cache: Arc::new(cache),
             ttl: std::cmp::min(ttl, Duration::from_secs(5 * 365 * 24 * 3600)),
         }
     }
@@ -95,7 +74,7 @@ impl MCache {
     }
 
     pub fn set(&self, key: KeyType, value: impl Into<CacheValue>) {
-        self.cache.insert(
+        self.cache.put(
             key,
             CacheEntry {
                 value: value.into(),
@@ -109,6 +88,8 @@ impl MCache {
         KeyType: Borrow<Q>,
         Q: std::hash::Hash + Eq + ?Sized,
     {
-        self.cache.remove(key).map(|e| e.value)
+        // todo
+        // self.cache.remove(key).map(|e| e.value)
+        None
     }
 }
