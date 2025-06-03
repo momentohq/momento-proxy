@@ -14,16 +14,18 @@ use goodmetrics::{GaugeFactory, SumHandle};
 
 use super::{RpcCallGuard, RpcMetrics};
 
-pub trait ProxyMetrics: Clone + Send + Sync + 'static {
+pub trait ConnectionMetrics: Clone + Send + Sync + 'static {
     fn begin_connection(&self) -> ConnectionGuard;
+}
 
-    // memcached RPCs
+pub trait MemcachedMetrics: Clone + Send + Sync + 'static {
     fn begin_memcached_get(&self) -> RpcCallGuard;
     fn begin_memcached_set(&self) -> RpcCallGuard;
     fn begin_memcached_delete(&self) -> RpcCallGuard;
     fn begin_memcached_unimplemented(&self) -> RpcCallGuard;
+}
 
-    // resp RPCs
+pub trait RespMetrics: Clone + Send + Sync + 'static {
     fn begin_resp_del(&self) -> RpcCallGuard;
     fn begin_resp_get(&self) -> RpcCallGuard;
     fn begin_resp_hdel(&self) -> RpcCallGuard;
@@ -65,15 +67,23 @@ pub trait ProxyMetrics: Clone + Send + Sync + 'static {
     fn begin_resp_unimplemented(&self) -> RpcCallGuard;
 }
 
+pub trait ProxyMetrics: ConnectionMetrics + MemcachedMetrics + RespMetrics {}
+impl<T: ConnectionMetrics + MemcachedMetrics + RespMetrics> ProxyMetrics for T {}
+
 #[derive(Clone, Debug)]
 pub struct DefaultProxyMetrics {
-    // memcached RPCs
+    // connection handles
+    pub(crate) connections_opened: SumHandle,
+    pub(crate) connections_closed: SumHandle,
+    pub(crate) total_active_connections_count: Arc<AtomicI64>,
+
+    // memcached handles
     pub(crate) memcached_get: RpcMetrics,
     pub(crate) memcached_set: RpcMetrics,
     pub(crate) memcached_delete: RpcMetrics,
     pub(crate) memcached_unimplemented: RpcMetrics,
 
-    // resp RPCs
+    // resp handles
     pub(crate) resp_del: RpcMetrics,
     pub(crate) resp_get: RpcMetrics,
     pub(crate) resp_hdel: RpcMetrics,
@@ -113,10 +123,6 @@ pub struct DefaultProxyMetrics {
     pub(crate) resp_zcount: RpcMetrics,
     pub(crate) resp_zunionstore: RpcMetrics,
     pub(crate) resp_unimplemented: RpcMetrics,
-
-    pub(crate) connections_opened: SumHandle,
-    pub(crate) connections_closed: SumHandle,
-    pub(crate) total_active_connections_count: Arc<AtomicI64>,
 }
 
 impl DefaultProxyMetrics {
@@ -187,7 +193,7 @@ impl DefaultProxyMetrics {
     }
 }
 
-impl ProxyMetrics for DefaultProxyMetrics {
+impl ConnectionMetrics for DefaultProxyMetrics {
     fn begin_connection(&self) -> ConnectionGuard {
         ConnectionGuard::new(
             self.connections_opened.clone(),
@@ -195,8 +201,9 @@ impl ProxyMetrics for DefaultProxyMetrics {
             self.total_active_connections_count.clone(),
         )
     }
+}
 
-    // memcached RPCs
+impl MemcachedMetrics for DefaultProxyMetrics {
     fn begin_memcached_get(&self) -> RpcCallGuard {
         self.memcached_get.record_api_call()
     }
@@ -212,8 +219,9 @@ impl ProxyMetrics for DefaultProxyMetrics {
     fn begin_memcached_unimplemented(&self) -> RpcCallGuard {
         self.memcached_unimplemented.record_api_call()
     }
+}
 
-    // resp RPCs
+impl RespMetrics for DefaultProxyMetrics {
     fn begin_resp_del(&self) -> RpcCallGuard {
         self.resp_del.record_api_call()
     }
@@ -333,12 +341,13 @@ impl ProxyMetrics for DefaultProxyMetrics {
     }
 }
 
-impl ProxyMetrics for Arc<DefaultProxyMetrics> {
+impl ConnectionMetrics for Arc<DefaultProxyMetrics> {
     fn begin_connection(&self) -> ConnectionGuard {
         self.as_ref().begin_connection()
     }
+}
 
-    // memcached RPCs
+impl MemcachedMetrics for Arc<DefaultProxyMetrics> {
     fn begin_memcached_get(&self) -> RpcCallGuard {
         self.as_ref().begin_memcached_get()
     }
@@ -354,8 +363,9 @@ impl ProxyMetrics for Arc<DefaultProxyMetrics> {
     fn begin_memcached_unimplemented(&self) -> RpcCallGuard {
         self.as_ref().begin_memcached_unimplemented()
     }
+}
 
-    // resp RPCs
+impl RespMetrics for Arc<DefaultProxyMetrics> {
     fn begin_resp_del(&self) -> RpcCallGuard {
         self.as_ref().begin_resp_del()
     }

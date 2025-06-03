@@ -319,7 +319,7 @@ pub(crate) async fn handle_resp_client(
     mut socket: tokio::net::TcpStream,
     mut client: CacheClient,
     cache_name: String,
-    proxy_metrics: impl ProxyMetrics,
+    proxy_metrics: impl RespMetrics,
 ) {
     debug!("accepted resp client");
 

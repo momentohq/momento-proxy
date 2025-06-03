@@ -84,5 +84,7 @@ pub mod util;
 
 pub use builder::ProxyMetricsBuilder;
 pub use connection::ConnectionGuard;
-pub use proxy::{DefaultProxyMetrics, ProxyMetrics};
+pub use proxy::{
+    ConnectionMetrics, DefaultProxyMetrics, MemcachedMetrics, ProxyMetrics, RespMetrics,
+};
 pub use rpc::{with_rpc_call_guard, RpcCallGuard, RpcMetrics};
