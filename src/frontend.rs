@@ -319,6 +319,7 @@ pub(crate) async fn handle_resp_client(
     mut socket: tokio::net::TcpStream,
     mut client: CacheClient,
     cache_name: String,
+    proxy_metrics: impl ProxyMetrics,
 ) {
     debug!("accepted resp client");
 
@@ -357,120 +358,303 @@ pub(crate) async fn handle_resp_client(
         let result: ProxyResult = async {
             match &request {
                 resp::Request::Del(r) => {
-                    resp::del(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_del(),
+                        resp::del(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::Get(r) => {
-                    resp::get(&mut client, &cache_name, &mut response_buf, r.key()).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_get(),
+                        resp::get(&mut client, &cache_name, &mut response_buf, r.key()),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashDelete(r) => {
-                    resp::hdel(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hdel(),
+                        resp::hdel(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashExists(r) => {
-                    resp::hexists(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hexists(),
+                        resp::hexists(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashGet(r) => {
-                    resp::hget(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hget(),
+                        resp::hget(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashGetAll(r) => {
-                    resp::hgetall(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hgetall(),
+                        resp::hgetall(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashIncrBy(r) => {
-                    resp::hincrby(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hincrby(),
+                        resp::hincrby(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashKeys(r) => {
-                    resp::hkeys(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hkeys(),
+                        resp::hkeys(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashLength(r) => {
-                    resp::hlen(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hlen(),
+                        resp::hlen(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashMultiGet(r) => {
-                    resp::hmget(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hmget(),
+                        resp::hmget(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashSet(r) => {
-                    resp::hset(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hset(),
+                        resp::hset(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::HashValues(r) => {
-                    resp::hvals(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_hvals(),
+                        resp::hvals(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListIndex(r) => {
-                    resp::lindex(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_lindex(),
+                        resp::lindex(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListLen(r) => {
-                    resp::llen(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_llen(),
+                        resp::llen(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListPop(r) => {
-                    resp::lpop(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_lpop(),
+                        resp::lpop(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListRange(r) => {
-                    resp::lrange(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_lrange(),
+                        resp::lrange(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListPush(r) => {
-                    resp::lpush(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_lpush(),
+                        resp::lpush(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListPushBack(r) => {
-                    resp::rpush(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_rpush(),
+                        resp::rpush(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::ListPopBack(r) => {
-                    resp::rpop(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_rpop(),
+                        resp::rpop(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::Set(r) => {
-                    resp::set(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_set(),
+                        resp::set(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetAdd(r) => {
-                    resp::sadd(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_sadd(),
+                        resp::sadd(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetRem(r) => {
-                    resp::srem(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_srem(),
+                        resp::srem(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetDiff(r) => {
-                    resp::sdiff(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_sdiff(),
+                        resp::sdiff(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetUnion(r) => {
-                    resp::sunion(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_sunion(),
+                        resp::sunion(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetIntersect(r) => {
-                    resp::sinter(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_sinter(),
+                        resp::sinter(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
+
                 resp::Request::SetMembers(r) => {
-                    resp::smembers(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_smembers(),
+                        resp::smembers(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SetIsMember(r) => {
-                    resp::sismember(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_sismember(),
+                        resp::sismember(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetCardinality(r) => {
-                    resp::zcard(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zcard(),
+                        resp::zcard(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetIncrement(r) => {
-                    resp::zincrby(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zincrby(),
+                        resp::zincrby(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetScore(r) => {
-                    resp::zscore(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zscore(),
+                        resp::zscore(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetMultiScore(r) => {
-                    resp::zmscore(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zmscore(),
+                        resp::zmscore(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetRemove(r) => {
-                    resp::zrem(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zrem(),
+                        resp::zrem(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetRank(r) => {
-                    resp::zrank(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zrank(),
+                        resp::zrank(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetRange(r) => {
-                    resp::zrange(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zrange(),
+                        resp::zrange(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetAdd(r) => {
-                    resp::zadd(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zadd(),
+                        resp::zadd(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetReverseRank(r) => {
-                    resp::zrevrank(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zrevrank(),
+                        resp::zrevrank(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetCount(r) => {
-                    resp::zcount(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zcount(),
+                        resp::zcount(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
                 resp::Request::SortedSetUnionStore(r) => {
-                    resp::zunionstore(&mut client, &cache_name, &mut response_buf, r).await?
+                    with_rpc_call_guard(
+                        proxy_metrics.begin_resp_zunionstore(),
+                        resp::zunionstore(&mut client, &cache_name, &mut response_buf, r),
+                    )
+                    .await?
                 }
-                _ => return Err(ProxyError::UnsupportedCommand(request.command())),
+                _ => {
+                    debug!("unsupported command: {}", command);
+                    with_rpc_call_guard(proxy_metrics.begin_resp_unimplemented(), async {
+                        Err(ProxyError::UnsupportedCommand(request.command()))
+                    })
+                    .await?
+                }
             }
 
             Ok(())

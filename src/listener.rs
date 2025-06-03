@@ -55,7 +55,13 @@ pub(crate) async fn listener(
                         .await;
                     }
                     Protocol::Resp => {
-                        crate::frontend::handle_resp_client(socket, client, cache_name).await;
+                        crate::frontend::handle_resp_client(
+                            socket,
+                            client,
+                            cache_name,
+                            proxy_metrics,
+                        )
+                        .await;
                     }
                 }
 
