@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::cache::CacheValue;
 use crate::klog::{klog_set, Status};
 use crate::{Error, *};
 use momento::cache::SetRequest;
@@ -31,8 +32,18 @@ pub async fn set(
     };
 
     if let Some(memory_cache) = &memory_cache {
-        // TODO: This invalidates the cache entry, but we could probably just update it in place
-        memory_cache.delete(&key);
+        // On write, populate the local in-memory cache immediately.
+        //
+        // This complements the read-through logic:
+        // - Writes update both memory cache and momento
+        // - Reads check memory cache first, then fall back to momento on miss, and backfill the memory cache
+        //
+        // This ensures that:
+        // (1) A proxy process restart doesn't degrade performance (cache warms on read)
+        // (2) Multiple proxies each keep a warm local cache, even if writes are done by others
+        let flags = if flags { request.flags() } else { 0 };
+        let value = protocol_memcache::Value::new(&key, flags, None, &request.value());
+        memory_cache.set(key.to_vec(), CacheValue::Memcached { value });
     }
 
     BACKEND_REQUEST.increment();
