@@ -3,7 +3,7 @@ name = "momento_proxy"
 description = "a proxy to access Momento cache(s) over memcache protocol"
 authors = ["Brian Martin <brayniac@gmail.com>"]
 
-version = "0.3.2"
+version = "0.10.1"
 edition = "2021"
 homepage = "https://pelikan.io"
 repository = "https://github.com/pelikan-io/pelikan"
