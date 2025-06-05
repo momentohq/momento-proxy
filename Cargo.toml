@@ -1,12 +1,12 @@
 [package]
 name = "momento_proxy"
-description = "a proxy to access Momento cache(s) over memcache protocol"
-authors = ["Brian Martin <brayniac@gmail.com>"]
+description = "a proxy to access Momento cache(s) over memcache and resp protocol"
+authors = ["Momento <hello@momentohq.com>", "Brian Martin <brayniac@gmail.com>"]
 
 version = "0.10.1"
 edition = "2021"
-homepage = "https://pelikan.io"
-repository = "https://github.com/pelikan-io/pelikan"
+homepage = "https://gomomento.com"
+repository = "https://github.com/momentohq/momento-proxy"
 license = "Apache-2.0"
 
 [dependencies]
