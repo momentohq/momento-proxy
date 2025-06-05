@@ -65,9 +65,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          # Tag under the version (e.g. “v1.2.3”) and also “latest”
+          # Tag under the version (e.g. “1.2.3”) and also “latest”
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.tag_name }}
+            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
