@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 RUN cargo vendor > .cargo/config
 
-RUN cargo build --release  -p momento_proxy
+RUN make build-release
 
 # -----------------
 # Run Momento Proxy

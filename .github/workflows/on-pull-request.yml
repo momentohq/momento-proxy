@@ -9,19 +9,19 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-#  rustfmt:
-#    name: main - Style & Lint
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - name: Commitlint and Other Shared Build Steps
-#        uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
-#
-#      - uses: Swatinem/rust-cache@v2
-#
-#      - name: Lint (rustfmt and clippy)
-#        run: make lint
+  #  rustfmt:
+  #    name: main - Style & Lint
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v3
+  #
+  #      - name: Commitlint and Other Shared Build Steps
+  #        uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
+  #
+  #      - uses: Swatinem/rust-cache@v2
+  #
+  #      - name: Lint (rustfmt and clippy)
+  #        run: make lint
 
   build_rust:
     runs-on: ubuntu-24.04
@@ -32,4 +32,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: make build
+        run: make build-release
