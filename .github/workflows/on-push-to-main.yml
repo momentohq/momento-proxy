@@ -29,51 +29,51 @@ jobs:
         with:
           token: ${{ secrets.MOMENTO_MACHINE_USER_GITHUB_TOKEN }}
 
-  publish-docker:
-    name: Publish Docker Image
-    runs-on: ubuntu-24.04
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Checkout the new Release Please tag
-        run: |
-          git fetch --tags
-          git checkout ${{ needs.release-please.outputs.tag_name }}
-
-      # QEMU setup for arm64 emulation on x86 runner
-      # TODO: this is really slow, so we should consider using a self-hosted runner with arm64 architecture
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build & push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          # Tag under the version (e.g. “1.2.3”) and also “latest”
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
-            ${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  #  publish-docker:
+  #    name: Publish Docker Image
+  #    runs-on: ubuntu-24.04
+  #    needs: release-please
+  #    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+  #    steps:
+  #      - name: Checkout repository
+  #        uses: actions/checkout@v4
+  #        with:
+  #          fetch-depth: 0
+  #
+  #      - name: Checkout the new Release Please tag
+  #        run: |
+  #          git fetch --tags
+  #          git checkout ${{ needs.release-please.outputs.tag_name }}
+  #
+  #      # QEMU setup for arm64 emulation on x86 runner
+  #      # TODO: this is really slow, so we should consider using a self-hosted runner with arm64 architecture
+  #      - name: Set up QEMU
+  #        uses: docker/setup-qemu-action@v3
+  #
+  #      - name: Set up Docker Buildx
+  #        uses: docker/setup-buildx-action@v3
+  #
+  #      - name: Log in to Docker Hub
+  #        uses: docker/login-action@v3
+  #        with:
+  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+  #
+  #      - name: Build & push Docker image
+  #        uses: docker/build-push-action@v6
+  #        with:
+  #          context: .
+  #          push: true
+  #          platforms: linux/amd64,linux/arm64
+  #          # Tag under the version (e.g. “1.2.3”) and also “latest”
+  #          tags: |
+  #            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
+  #            ${{ env.IMAGE_NAME }}:latest
+  #          cache-from: type=gha
+  #          cache-to: type=gha,mode=max
 
   build-binaries:
-    name: Build & upload binaries (${{ matrix.arch }})
+    name: Build & upload binaries ( ${{ matrix.arch }} )
     runs-on: ubuntu-24.04
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
@@ -86,15 +86,6 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             arch: arm64
 
-    env:
-      BINARY_NAME: momento-proxy
-      # where the compiled binary lives:
-      TARGET_DIR: target/${{ matrix.target }}/release
-      # full tarball filename, including extension:
-      FILENAME: momento-proxy-${{ needs.release-please.outputs.version }}-linux-${{ matrix.arch }}.tar.gz
-      # path under dist/ where the tarball will go:
-      ASSET_PATH: dist/momento-proxy-${{ needs.release-please.outputs.version }}-linux-${{ matrix.arch }}.tar.gz
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -106,41 +97,21 @@ jobs:
           git fetch --tags
           git checkout ${{ needs.release-please.outputs.tag_name }}
 
-      - name: Install Rust toolchain + target ${{ matrix.target }}
+      - name: Install Rust target ${{ matrix.target }}
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          override: true
           profile: minimal
+          override: true
           target: ${{ matrix.target }}
 
-      - name: Build release (${{ matrix.arch }})
-        run: make CARGO_FLAGS="--verbose --target=${{ matrix.target }}" build-release
-
-      - name: Package binary (${{ matrix.arch }})
-        run: |
-          mkdir -p dist
-          tar czf ${{ env.ASSET_PATH }} -C ${{ env.TARGET_DIR }} ${{ env.BINARY_NAME }}
-
-      - name: Get Release upload URL
-        id: get_release
-        uses: actions/github-script@v7
+      - name: Build & upload to GitHub Release
+        uses: taiki-e/upload-rust-binary-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          result-encoding: string
-          script: |
-            const tag = '${{ needs.release-please.outputs.tag_name }}';
-            const { data } = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag
-            });
-            return data.upload_url.replace('{?name,label}', '');
-
-      - name: Upload binary for ${{ matrix.arch }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.get_release.outputs.result }}
-          asset_path: ${{ env.ASSET_PATH }}
-          asset_name: ${{ env.FILENAME }}
-          asset_content_type: application/gzip
+          bin: momento-proxy
+          ref: refs/tags/${{ needs.release-please.outputs.tag_name }}
+          target: ${{ matrix.target }}
+          archive: $bin-$tag-$target
+          tar: unix
+          zip: none
+          build-tool: cargo
+          token: ${{ secrets.GITHUB_TOKEN }}
