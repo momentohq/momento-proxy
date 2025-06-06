@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/momentohq/momento-proxy/compare/v0.10.3...v0.10.4) (2025-06-06)
+
+
+### Bug Fixes
+
+* do not use env var for config in dockerfile ([#28](https://github.com/momentohq/momento-proxy/issues/28)) ([f86dd44](https://github.com/momentohq/momento-proxy/commit/f86dd443fc48305cd48d8fcdbfefd38dbd847bdc))
+
 ## [0.10.3](https://github.com/momentohq/momento-proxy/compare/v0.10.2...v0.10.3) (2025-06-06)
 
 
