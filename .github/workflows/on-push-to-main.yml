@@ -71,3 +71,76 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  build-binaries:
+    name: Build & upload binaries (${{ matrix.arch }})
+    runs-on: ubuntu-24.04
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            arch: amd64
+          - target: aarch64-unknown-linux-gnu
+            arch: arm64
+
+    env:
+      BINARY_NAME: momento-proxy
+      # where the compiled binary lives:
+      TARGET_DIR: target/${{ matrix.target }}/release
+      # full tarball filename, including extension:
+      FILENAME: momento-proxy-${{ needs.release-please.outputs.version }}-linux-${{ matrix.arch }}.tar.gz
+      # path under dist/ where the tarball will go:
+      ASSET_PATH: dist/momento-proxy-${{ needs.release-please.outputs.version }}-linux-${{ matrix.arch }}.tar.gz
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout tag ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          git fetch --tags
+          git checkout ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Install Rust toolchain + target ${{ matrix.target }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          target: ${{ matrix.target }}
+
+      - name: Build release (${{ matrix.arch }})
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package binary (${{ matrix.arch }})
+        run: |
+          mkdir -p dist
+          tar czf ${{ env.ASSET_PATH }} -C ${{ env.TARGET_DIR }} ${{ env.BINARY_NAME }}
+
+      - name: Get Release upload URL
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            const tag = '${{ needs.release-please.outputs.tag_name }}';
+            const { data } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag
+            });
+            return data.upload_url.replace('{?name,label}', '');
+
+      - name: Upload binary for ${{ matrix.arch }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.result }}
+          asset_path: ${{ env.ASSET_PATH }}
+          asset_name: ${{ env.FILENAME }}
+          asset_content_type: application/gzip
