@@ -1,14 +1,21 @@
+# -----------------------------------------------------------
 # Globals
-
+# -----------------------------------------------------------
 CARGO := cargo
 CARGO_BUILD := $(CARGO) build
 CARGO_FLAGS := --verbose
 
+# -----------------------------------------------------------
 # Phony targets
+# -----------------------------------------------------------
 .PHONY: all format lint build clean clean-build precommit check-env run help
 
 ## Generate sync unit tests, format, and, lint
 all: precommit
+
+# -----------------------------------------------------------
+# Formatting and linting
+# -----------------------------------------------------------
 
 ## Format all files
 format:
@@ -26,10 +33,26 @@ lint:
 	@echo ">>> Running clippy on tests..."
 	@$(CARGO) clippy --tests -- -D warnings -W clippy::unwrap_used
 
-## Build project
-build:
-	@echo "Building project..."
+# -----------------------------------------------------------
+# Primary build targets
+# -----------------------------------------------------------
+
+## Build a normal debug binary (no --release flag)
+build-debug:
+	@echo "Building debug binary..."
 	@$(CARGO_BUILD) $(CARGO_FLAGS)
+
+## Build a release binary (optimized)
+build-release:
+	@echo "Building release binary..."
+	@$(CARGO_BUILD) --release $(CARGO_FLAGS)
+
+## Build project (both debug and release)
+build: build-debug build-release
+
+# -----------------------------------------------------------
+# Clean targets
+# -----------------------------------------------------------
 
 ## Remove build files
 clean:
@@ -39,8 +62,17 @@ clean:
 ## Build project
 clean-build: clean build
 
+
+# -----------------------------------------------------------
+# Pre-commit hooks
+# -----------------------------------------------------------
+
 ## Run clean-build as a step before committing.
 precommit: clean-build lint
+
+# -----------------------------------------------------------
+# Run targets
+# -----------------------------------------------------------
 
 check-env:
 	@if [ -z "${MOMENTO_AUTHENTICATION}" ]; then \
