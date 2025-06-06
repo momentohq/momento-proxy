@@ -134,6 +134,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // initialize logging
     let mut log = configure_logging(&config);
 
+    info!("starting momento-proxy v{}", env!("CARGO_PKG_VERSION"));
+
     // validate config parameters
     for cache in config.caches() {
         let name = cache.cache_name();
