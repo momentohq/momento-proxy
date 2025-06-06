@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.3](https://github.com/momentohq/momento-proxy/compare/v0.10.2...v0.10.3) (2025-06-06)
+
+
+### Miscellaneous
+
+* clean up makefile ([#25](https://github.com/momentohq/momento-proxy/issues/25)) ([bfe7496](https://github.com/momentohq/momento-proxy/commit/bfe7496f980027407526e7565be1a3e2c8872e79))
+* log version at startup ([#23](https://github.com/momentohq/momento-proxy/issues/23)) ([855bd1e](https://github.com/momentohq/momento-proxy/commit/855bd1e87ec03c55154c35d18e2f3848df7c71af))
+
 ## [0.10.2](https://github.com/momentohq/momento-proxy/compare/v0.10.1...v0.10.2) (2025-06-06)
 
 
