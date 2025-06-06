@@ -73,7 +73,7 @@ jobs:
   #          cache-to: type=gha,mode=max
 
   build-binaries:
-    name: Build & upload binaries ( ${{ matrix.arch }} )
+    name: Build & upload binaries (${{ matrix.arch }})
     runs-on: ubuntu-24.04
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
@@ -97,7 +97,7 @@ jobs:
           git fetch --tags
           git checkout ${{ needs.release-please.outputs.tag_name }}
 
-      - name: Install Rust target ${{ matrix.target }}
+      - name: Install Rust toolchain for target ${{ matrix.target }}
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
