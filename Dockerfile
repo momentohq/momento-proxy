@@ -2,7 +2,7 @@
 # Cargo Build Stage
 # -----------------
 
-FROM rust:latest as cargo-build
+FROM rust:latest AS cargo-build
 
 COPY . .
 RUN apt-get update && apt-get install -y \
