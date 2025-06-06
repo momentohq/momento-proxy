@@ -8,7 +8,10 @@ CARGO_FLAGS := --verbose
 # -----------------------------------------------------------
 # Phony targets
 # -----------------------------------------------------------
-.PHONY: all format lint build clean clean-build precommit check-env run help
+.PHONY: all format lint \
+	build build-debug build-release \
+	clean clean-build \
+	precommit check-env run help
 
 ## Generate sync unit tests, format, and, lint
 all: precommit
