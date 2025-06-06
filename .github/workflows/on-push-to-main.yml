@@ -115,7 +115,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Build release (${{ matrix.arch }})
-        run: cargo build --release --target ${{ matrix.target }}
+        run: make CARGO_FLAGS="--verbose --target=${{ matrix.target }}" build-release
 
       - name: Package binary (${{ matrix.arch }})
         run: |
