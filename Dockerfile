@@ -22,13 +22,10 @@ FROM debian:stable-slim
 
 WORKDIR /app
 
-ENV MOMENTO_AUTHENTICATION=""
-ENV CONFIG="momento_proxy.toml"
-
 RUN mkdir config
 
 COPY --from=cargo-build ./target/release/momento_proxy .
 COPY --from=cargo-build ./config/momento_proxy.toml ./config
 
 RUN chmod +x ./momento_proxy
-CMD ["./momento_proxy", "./config/${CONFIG}"]
+CMD ["./momento_proxy", "./config/momento_proxy.toml"]
