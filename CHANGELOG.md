@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.5](https://github.com/momentohq/momento-proxy/compare/v0.10.4...v0.10.5) (2025-06-09)
+
+
+### Miscellaneous
+
+* add missing phony targets ([#30](https://github.com/momentohq/momento-proxy/issues/30)) ([f371e5e](https://github.com/momentohq/momento-proxy/commit/f371e5efa5859d2772d5badbd619ecce6a08eece))
+
 ## [0.10.4](https://github.com/momentohq/momento-proxy/compare/v0.10.3...v0.10.4) (2025-06-06)
 
 
