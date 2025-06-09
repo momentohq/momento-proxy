@@ -97,11 +97,9 @@ jobs:
           git fetch --tags
           git checkout ${{ needs.release-please.outputs.tag_name }}
 
-      - name: Install Rust toolchain for target ${{ matrix.target }}
-        uses: actions-rs/toolchain@v1
+      - name: Install cross-compilation tools
+        uses: taiki-e/setup-cross-toolchain-action@v1
         with:
-          profile: minimal
-          override: true
           target: ${{ matrix.target }}
 
       - name: Build & upload to GitHub Release
