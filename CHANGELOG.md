@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.10.5](https://github.com/momentohq/momento-proxy/compare/v0.10.5...v0.10.5) (2025-06-09)
+## [0.10.5](https://github.com/momentohq/momento-proxy/compare/v0.10.4...v0.10.5) (2025-06-09)
 
 
 ### ci
