@@ -105,7 +105,7 @@ jobs:
       - name: Build & upload to GitHub Release
         uses: taiki-e/upload-rust-binary-action@v1
         with:
-          bin: momento-proxy
+          bin: momento_proxy
           ref: refs/tags/${{ needs.release-please.outputs.tag_name }}
           target: ${{ matrix.target }}
           archive: $bin-$tag-$target
