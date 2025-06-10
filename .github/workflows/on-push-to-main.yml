@@ -85,6 +85,10 @@ jobs:
             arch: amd64
           - target: aarch64-unknown-linux-gnu
             arch: arm64
+          - target: x86_64-unknown-linux-musl
+            arch: amd64-musl
+          - target: aarch64-unknown-linux-musl
+            arch: arm64-musl
 
     steps:
       - name: Checkout code
