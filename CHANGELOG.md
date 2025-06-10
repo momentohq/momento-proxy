@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/momentohq/momento-proxy/compare/v0.10.5...v0.10.6) (2025-06-10)
+
+
+### Miscellaneous
+
+* release 0.10.6 ([#39](https://github.com/momentohq/momento-proxy/issues/39)) ([bdf3d57](https://github.com/momentohq/momento-proxy/commit/bdf3d57febbfae7079f5fa07063cfc17f02e5c8f))
+
 ## [0.10.5](https://github.com/momentohq/momento-proxy/compare/v0.10.4...v0.10.5) (2025-06-09)
 
 
