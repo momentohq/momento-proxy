@@ -29,30 +29,9 @@ pub(crate) async fn admin(admin_listener: TcpListener) {
             });
         };
 
-        let mut rusage = libc::rusage {
-            ru_utime: libc::timeval {
-                tv_sec: 0,
-                tv_usec: 0,
-            },
-            ru_stime: libc::timeval {
-                tv_sec: 0,
-                tv_usec: 0,
-            },
-            ru_maxrss: 0,
-            ru_ixrss: 0,
-            ru_idrss: 0,
-            ru_isrss: 0,
-            ru_minflt: 0,
-            ru_majflt: 0,
-            ru_nswap: 0,
-            ru_inblock: 0,
-            ru_oublock: 0,
-            ru_msgsnd: 0,
-            ru_msgrcv: 0,
-            ru_nsignals: 0,
-            ru_nvcsw: 0,
-            ru_nivcsw: 0,
-        };
+        // SAFETY: libc::rusage is a POD struct; zeroing it is equivalent to C's {0} initializer.
+        // Needed for portability across both GNU libc and musl targets.
+        let mut rusage: libc::rusage = unsafe { std::mem::zeroed() };
 
         if unsafe { libc::getrusage(libc::RUSAGE_SELF, &mut rusage) } == 0 {
             RU_UTIME.set(rusage.ru_utime.tv_sec as u64 * S + rusage.ru_utime.tv_usec as u64 * US);
