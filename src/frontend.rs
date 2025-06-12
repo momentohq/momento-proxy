@@ -20,6 +20,7 @@ pub(crate) async fn handle_memcache_client(
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
     memory_cache: Option<MCache>,
+    buffer_size: usize,
 ) {
     debug!("accepted memcache client, waiting for first byte to detect text or binary");
 
@@ -34,6 +35,7 @@ pub(crate) async fn handle_memcache_client(
             Ok(_) => {
                 // check which protocol we use
                 if buf[0] == 0x80 {
+                    debug!("accepted memcache binary client");
                     handle_memcache_client_concrete(
                         socket,
                         client,
@@ -42,10 +44,12 @@ pub(crate) async fn handle_memcache_client(
                         flags,
                         proxy_metrics,
                         memory_cache,
+                        buffer_size,
                     )
                     .await;
                     return;
                 } else {
+                    debug!("accepted memcache text client");
                     handle_memcache_client_concrete(
                         socket,
                         client,
@@ -54,6 +58,7 @@ pub(crate) async fn handle_memcache_client(
                         flags,
                         proxy_metrics,
                         memory_cache,
+                        buffer_size,
                     )
                     .await;
                     return;
@@ -83,12 +88,11 @@ pub(crate) async fn handle_memcache_client_concrete(
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
     memory_cache: Option<MCache>,
+    buffer_size: usize,
 ) {
-    debug!("accepted memcache binary client");
-
     // initialize a buffer for incoming bytes from the client
-    let mut read_buffer = Buffer::new(INITIAL_BUFFER_SIZE);
-    let mut write_buffer = Buffer::new(INITIAL_BUFFER_SIZE);
+    let mut read_buffer = Buffer::new(buffer_size);
+    let mut write_buffer = Buffer::new(buffer_size);
 
     // initialize the protocol
     let protocol2 = protocol.clone();
@@ -320,11 +324,12 @@ pub(crate) async fn handle_resp_client(
     mut client: CacheClient,
     cache_name: String,
     proxy_metrics: impl RespMetrics,
+    buffer_size: usize,
 ) {
     debug!("accepted resp client");
 
     // initialize a buffer for incoming bytes from the client
-    let mut buf = Buffer::new(INITIAL_BUFFER_SIZE);
+    let mut buf = Buffer::new(buffer_size);
 
     // initialize the request parser
     let parser = resp::RequestParser::new();

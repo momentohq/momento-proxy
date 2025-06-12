@@ -15,6 +15,7 @@ pub(crate) async fn listener(
     flags: bool,
     proxy_metrics: impl ProxyMetrics,
     memory_cache: Option<MCache>,
+    buffer_size: usize,
 ) {
     // Establishing a gRPC connection is expensive, so the client needs to be created outside the
     // loop and reused to avoid paying that cost with each request. A Momento client can handle 100
@@ -51,6 +52,7 @@ pub(crate) async fn listener(
                             flags,
                             proxy_metrics,
                             memory_cache,
+                            buffer_size,
                         )
                         .await;
                     }
@@ -60,6 +62,7 @@ pub(crate) async fn listener(
                             client,
                             cache_name,
                             proxy_metrics,
+                            buffer_size,
                         )
                         .await;
                     }

@@ -1,3 +1,5 @@
+use crate::default_buffer_size;
+use crate::PAGESIZE;
 use core::num::NonZeroU64;
 use std::net::AddrParseError;
 use std::net::SocketAddr;
@@ -72,6 +74,8 @@ pub struct Cache {
     /// 0 means no expiration
     #[serde(default)]
     memory_cache_ttl_seconds: u64,
+    #[serde(default = "default_buffer_size")]
+    buffer_size: NonZeroUsize,
 }
 
 const fn four() -> NonZeroUsize {
@@ -124,6 +128,12 @@ impl Cache {
     /// 0 means no expiration
     pub fn memory_cache_ttl_seconds(&self) -> u64 {
         self.memory_cache_ttl_seconds
+    }
+
+    pub fn buffer_size(&self) -> usize {
+        // rounds the buffer size up to the next nearest multiple of the
+        // pagesize
+        std::cmp::max(1, self.buffer_size.get()).div_ceil(PAGESIZE)
     }
 }
 

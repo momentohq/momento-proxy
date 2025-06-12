@@ -32,6 +32,9 @@ default_ttl = 900
 # memory_cache_ttl_seconds = 0
 # the protocol can be "memcache" or "resp" (Redis), the default is memcache
 # protocol = "memcache"
+# Buffer sizes for read/write on the connection from the client application to the proxy
+# Defaults to 16 KiB. Can be tuned for performance based on item size distribution for the cache.
+# buffer_size = 16384
 
 # For compatibility reasons, by default memcache flags are stored with the value. If you are
 # __certain__ you do not need this, you can opt-out and save 4 bytes per stored value. If any

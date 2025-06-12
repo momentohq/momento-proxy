@@ -60,6 +60,8 @@ pub use metrics::*;
 //
 // MOMENTO_AUTHENTICATION - the Momento authentication token
 
+// Default for linux, should work well enough for the majority of platforms.
+pub const PAGESIZE: usize = 4096;
 // the default buffer size is matched to the upper-bound on TLS fragment size as
 // per RFC 5246 https://datatracker.ietf.org/doc/html/rfc5246#section-6.2.1
 pub const INITIAL_BUFFER_SIZE: usize = 16 * KB;
@@ -80,6 +82,10 @@ const COLLECTION_TTL: CollectionTtl = CollectionTtl::new(None, false);
 
 // we interpret TTLs the same way memcached would
 pub const TIME_TYPE: TimeType = TimeType::Memcache;
+
+pub const fn default_buffer_size() -> NonZeroUsize {
+    NonZeroUsize::new(INITIAL_BUFFER_SIZE).expect("initial buffer size cannot be zero")
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // custom panic hook to terminate whole process after unwinding
@@ -316,6 +322,14 @@ async fn spawn(
                 cache.cache_name(),
                 addr
             );
+            debug!("cache {} config: protocol={:?} flags={} local_cache_bytes={} local_cache_ttl_seconds={} buffer_size={}",
+                cache.cache_name(),
+                cache.protocol(),
+                cache.flags(),
+                cache.memory_cache_bytes(),
+                cache.memory_cache_ttl_seconds(),
+                cache.buffer_size(),
+            );
             let tcp_listener =
                 TcpListener::from_std(tcp_listener).expect("could not convert to tokio listener");
 
@@ -324,7 +338,7 @@ async fn spawn(
                 let ttl = if cache.memory_cache_ttl_seconds() == 0 {
                     Duration::MAX
                 } else {
-                    Duration::from_secs(cache.memory_cache_ttl_seconds() as u64)
+                    Duration::from_secs(cache.memory_cache_ttl_seconds())
                 };
                 Some(MCache::new(cache.memory_cache_bytes(), ttl))
             } else {
@@ -339,6 +353,7 @@ async fn spawn(
                 cache.flags(),
                 proxy_metrics,
                 local_cache,
+                cache.buffer_size(),
             )
             .await;
         });
