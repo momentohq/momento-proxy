@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.7](https://github.com/momentohq/momento-proxy/compare/v0.10.6...v0.10.7) (2025-06-12)
+
+
+### Miscellaneous
+
+* make buffer sizes configurable for incoming connections ([#43](https://github.com/momentohq/momento-proxy/issues/43)) ([7fc94be](https://github.com/momentohq/momento-proxy/commit/7fc94be34494ef1661b2463e77e469c355f2dc78))
+
 ## [0.10.6](https://github.com/momentohq/momento-proxy/compare/v0.10.5...v0.10.6) (2025-06-11)
 
 
