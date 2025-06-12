@@ -34,6 +34,7 @@ default_ttl = 900
 # protocol = "memcache"
 # Buffer sizes for read/write on the connection from the client application to the proxy
 # Defaults to 16 KiB. Can be tuned for performance based on item size distribution for the cache.
+# Values are rounded to the nearest multiple of 4KiB before use.
 # buffer_size = 16384
 
 # For compatibility reasons, by default memcache flags are stored with the value. If you are
