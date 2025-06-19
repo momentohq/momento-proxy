@@ -29,48 +29,47 @@ jobs:
         with:
           token: ${{ secrets.MOMENTO_MACHINE_USER_GITHUB_TOKEN }}
 
-  #  publish-docker:
-  #    name: Publish Docker Image
-  #    runs-on: ubuntu-24.04
-  #    needs: release-please
-  #    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-  #    steps:
-  #      - name: Checkout repository
-  #        uses: actions/checkout@v4
-  #        with:
-  #          fetch-depth: 0
-  #
-  #      - name: Checkout the new Release Please tag
-  #        run: |
-  #          git fetch --tags
-  #          git checkout ${{ needs.release-please.outputs.tag_name }}
-  #
-  #      # QEMU setup for arm64 emulation on x86 runner
-  #      # TODO: this is really slow, so we should consider using a self-hosted runner with arm64 architecture
-  #      - name: Set up QEMU
-  #        uses: docker/setup-qemu-action@v3
-  #
-  #      - name: Set up Docker Buildx
-  #        uses: docker/setup-buildx-action@v3
-  #
-  #      - name: Log in to Docker Hub
-  #        uses: docker/login-action@v3
-  #        with:
-  #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-  #
-  #      - name: Build & push Docker image
-  #        uses: docker/build-push-action@v6
-  #        with:
-  #          context: .
-  #          push: true
-  #          platforms: linux/amd64,linux/arm64
-  #          # Tag under the version (e.g. “1.2.3”) and also “latest”
-  #          tags: |
-  #            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
-  #            ${{ env.IMAGE_NAME }}:latest
-  #          cache-from: type=gha
-  #          cache-to: type=gha,mode=max
+  publish-docker:
+    name: Publish Docker Image
+    runs-on: ubuntu-24.04
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout the new Release Please tag
+        run: |
+          git fetch --tags
+          git checkout ${{ needs.release-please.outputs.tag_name }}
+
+      # QEMU setup for arm64 emulation on x86 runner
+      # TODO: this is really slow, so we should consider using a self-hosted runner with arm64 architecture
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          # Tag under the version (e.g. “1.2.3”) and also “latest”
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-binaries:
     name: Build & upload binaries (${{ matrix.arch }})
