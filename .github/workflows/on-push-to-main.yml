@@ -74,21 +74,34 @@ jobs:
 
   build-binaries:
     name: Build & upload binaries (${{ matrix.arch }})
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
+          # Linux GNU
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
             arch: amd64
-          - target: aarch64-unknown-linux-gnu
+          - os: ubuntu-24.04
+            target: aarch64-unknown-linux-gnu
             arch: arm64
-          - target: x86_64-unknown-linux-musl
+          # Linux MUSL
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
             arch: amd64-musl
-          - target: aarch64-unknown-linux-musl
+          - os: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
             arch: arm64-musl
+          # macOS
+          - os: macos-15
+            target: x86_64-apple-darwin
+            arch: macos-amd64
+          - os: macos-15
+            target: aarch64-apple-darwin
+            arch: macos-arm64
 
     steps:
       - name: Checkout code
@@ -101,7 +114,8 @@ jobs:
           git fetch --tags
           git checkout ${{ needs.release-please.outputs.tag_name }}
 
-      - name: Install cross-compilation tools
+      - name: Install cross-compilation tools (Linux only)
+        if: startsWith(matrix.os, 'ubuntu')
         uses: taiki-e/setup-cross-toolchain-action@v1
         with:
           target: ${{ matrix.target }}
