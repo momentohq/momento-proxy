@@ -81,17 +81,17 @@ jobs:
       matrix:
         include:
           # Linux GNU
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             arch: amd64
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
             arch: arm64
           # Linux MUSL
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-musl
             arch: amd64-musl
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-musl
             arch: arm64-musl
           # macOS
