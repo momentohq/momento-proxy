@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.10](https://github.com/momentohq/momento-proxy/compare/v0.10.9...v0.10.10) (2025-06-21)
+
+
+### Bug Fixes
+
+* use Ubuntu 22.04 runners because Ubuntu 24.04 built binaries do not run on AL2023 ([#52](https://github.com/momentohq/momento-proxy/issues/52)) ([64222fc](https://github.com/momentohq/momento-proxy/commit/64222fc2e93deed297627577d21a335e5ea40c9c))
+
 ## [0.10.9](https://github.com/momentohq/momento-proxy/compare/v0.10.8...v0.10.9) (2025-06-19)
 
 
