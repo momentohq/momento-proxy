@@ -31,23 +31,30 @@ jobs:
 
   publish-docker:
     name: Publish Docker Image
-    runs-on: ubuntu-24.04
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+            suffix: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            suffix: arm64
+
+    runs-on: ${{ matrix.runner }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Checkout the new Release Please tag
+        with: { fetch-depth: 0 }
+
+      - name: Checkout tag ${{ needs.release-please.outputs.tag_name }}
         run: |
           git fetch --tags
           git checkout ${{ needs.release-please.outputs.tag_name }}
-
-      # QEMU setup for arm64 emulation on x86 runner
-      # TODO: this is really slow, so we should consider using a self-hosted runner with arm64 architecture
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -58,18 +65,43 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build & push Docker image
+      - name: Build & push ${{ matrix.platform }}
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm64
-          # Tag under the version (e.g. “1.2.3”) and also “latest”
+          platforms: ${{ matrix.platform }}
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:latest-${{ matrix.suffix }}
+            ${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.version }}-{{ matrix.suffix }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  create-manifest:
+    name: Create & push multi-arch manifest
+    needs: publish-docker
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Create & push "latest"
+        run: |
+          docker manifest create ${{ env.IMAGE_NAME }}:latest \
+            --amend ${{ env.IMAGE_NAME }}:latest-amd64 \
+            --amend ${{ env.IMAGE_NAME }}:latest-arm64
+          docker manifest push ${{ env.IMAGE_NAME }}:latest
+
+      - name: Create & push versioned tag
+        run: |
+          VERSION=${{ needs.release-please.outputs.version }}
+          docker manifest create ${{ env.IMAGE_NAME }}:${VERSION} \
+            --amend ${{ env.IMAGE_NAME }}:${VERSION}-amd64 \
+            --amend ${{ env.IMAGE_NAME }}:${VERSION}-arm64
+          docker manifest push ${{ env.IMAGE_NAME }}:${VERSION}
 
   build-binaries:
     name: Build & upload binaries (${{ matrix.arch }})
