@@ -23,18 +23,18 @@ Follow the [build steps](https://github.com/twitter/pelikan#building-pelikan) in
 
 ## Configuration
 
-### Authentication Token
+### API Key
 
-The Momento proxy requires that the `MOMENTO_AUTHENTICATION` environment
-variable is set and contains a valid Momento authentication token.
+The Momento proxy requires that the `MOMENTO_API_KEY` environment
+variable is set and contains a valid Momento API key.
 
 If you're new to Momento, you should refer to the
 [Momento CLI docs](https://github.com/momentohq/momento-cli#momento-cli) for
-instructions to sign up and get an authentication token.
+instructions to sign up and get an API key.
 
 ### Create Cache
 
-After obtaining an authentication token, you should create one or more caches to
+After obtaining an API key, you should create one or more caches to
 use with the proxy.
 
 ### Proxy Configuration
@@ -67,7 +67,7 @@ docker run -d \
   -p 11211:11211 \
   -p 6379:6379 \
   -p 9999:9999 \
-  -e MOMENTO_AUTHENTICATION=<YOUR_MOMENTO_TOKEN> \
+  -e MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY> \
   gomomento/momento-proxy
 ```
 
@@ -79,7 +79,7 @@ docker run -d \
   -p 11211:11211 \
   -p 6379:6379 \
   -p 9999:9999 \
-  -e MOMENTO_AUTHENTICATION=<YOUR_MOMENTO_TOKEN> \
+  -e MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY> \
   -e CONFIG=my_custom_config.toml \
   -v /your/path/to/config/dir:/app/config gomomento/momento-proxy
 ```
@@ -99,7 +99,7 @@ docker run -d \
   -p 11211:11211 \
   -p 6379:6379 \
   -p 9999:9999 \
-  -e MOMENTO_AUTHENTICATION=<YOUR_MOMENTO_TOKEN> \
+  -e MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY> \
   momento-proxy
 ```
 
@@ -110,7 +110,7 @@ docker run -d \
   -p 11211:11211 \
   -p 6379:6379 \
   -p 9999:9999 \
-  -e MOMENTO_AUTHENTICATION=<YOUR_MOMENTO_TOKEN> \
+  -e MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY> \
   -e CONFIG=<YOUR_CONFIG_FILE> \
   -v /your/path/to/config/dir:/app/config \
   momento-proxy
@@ -129,6 +129,7 @@ STORED
 ```
 
 - Or you can use `redis-cli` to test to see if `momento-proxy` is running properly for Redis:
+
 ```
 redis-cli -h 0.0.0.0 -p 6379 SET FOO BAR
 OK

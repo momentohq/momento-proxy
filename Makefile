@@ -78,8 +78,8 @@ precommit: clean-build lint
 # -----------------------------------------------------------
 
 check-env:
-	@if [ -z "${MOMENTO_AUTHENTICATION}" ]; then \
-		echo "MOMENTO_AUTHENTICATION is not set"; \
+	@if [ -z "${MOMENTO_API_KEY}" ]; then \
+		echo "MOMENTO_API_KEY is not set"; \
 		exit 1; \
 	fi
 

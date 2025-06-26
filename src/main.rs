@@ -58,7 +58,7 @@ pub use metrics::*;
 // The following environment variables are necessary to configure the proxy
 // until the config file is finalized:
 //
-// MOMENTO_AUTHENTICATION - the Momento authentication token
+// MOMENTO_API_KEY - the Momento API key to use for authentication
 
 // Default for linux, should work well enough for the majority of platforms.
 pub const PAGESIZE: usize = 4096;
@@ -253,16 +253,16 @@ async fn spawn(
     info!("starting proxy admin listener on: {}", admin_addr);
 
     // initialize the Momento cache client
-    if std::env::var("MOMENTO_AUTHENTICATION").is_err() {
-        eprintln!("environment variable `MOMENTO_AUTHENTICATION` is not set");
+    if std::env::var("MOMENTO_API_KEY").is_err() {
+        eprintln!("environment variable `MOMENTO_API_KEY` is not set");
         std::process::exit(1);
     }
-    let auth_token =
-        std::env::var("MOMENTO_AUTHENTICATION").expect("MOMENTO_AUTHENTICATION must be set");
-    let credential_provider = CredentialProvider::from_string(auth_token).unwrap_or_else(|e| {
-        eprintln!("failed to initialize credential provider. error: {e}");
-        std::process::exit(1);
-    });
+    let momento_api_key = std::env::var("MOMENTO_API_KEY").expect("MOMENTO_API_KEY must be set");
+    let credential_provider =
+        CredentialProvider::from_string(momento_api_key).unwrap_or_else(|e| {
+            eprintln!("failed to initialize credential provider. error: {e}");
+            std::process::exit(1);
+        });
 
     if config.caches().is_empty() {
         eprintln!("no caches specified in the config");
