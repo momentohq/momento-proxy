@@ -1394,7 +1394,7 @@ dependencies = [
 
 [[package]]
 name = "momento_proxy"
-version = "0.10.10"
+version = "0.10.11"
 dependencies = [
  "backtrace",
  "bytes",
