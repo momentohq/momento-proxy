@@ -40,9 +40,18 @@ pub async fn get(
             tasks.push_back(run_get(client, cache_name, flags, key, recorder));
         }
     }
-    let values_from_upstream: Vec<Option<protocol_memcache::Value>> = tasks.collect().await;
-    let mut values: Vec<protocol_memcache::Value> =
-        values_from_upstream.into_iter().flatten().collect();
+
+    // If we had received an auth or timeout error, we should return the error immediately
+    let values_from_upstream: Vec<Result<Option<protocol_memcache::Value>, Error>> =
+        tasks.collect().await;
+    let mut values: Vec<protocol_memcache::Value> = Vec::new();
+    for value in values_from_upstream.into_iter() {
+        if let Ok(Some(v)) = value {
+            values.push(v);
+        } else if let Err(e) = value {
+            return Err(Error::new(ErrorKind::Other, format!("{e}")));
+        }
+    }
     if let Some(memory_cache) = &memory_cache {
         for value in values.iter() {
             memory_cache.set(
@@ -68,7 +77,7 @@ async fn run_get(
     flags: bool,
     key: &[u8],
     recorder: &RpcCallGuard,
-) -> Option<protocol_memcache::Value> {
+) -> Result<Option<protocol_memcache::Value>, Error> {
     let mut recorder = recorder.clone();
     match timeout(Duration::from_millis(200), client.get(cache_name, key)).await {
         Ok(Ok(response)) => match response {
@@ -80,7 +89,7 @@ async fn run_get(
                 if flags && value.len() < 5 {
                     recorder.complete_miss();
                     klog_1(&"get", &key, Status::Miss, 0);
-                    None
+                    Ok(None)
                 } else if flags {
                     let flags: u32 = u32::from_be_bytes([value[0], value[1], value[2], value[3]]);
                     let value: Vec<u8> = value[4..].into();
@@ -88,13 +97,15 @@ async fn run_get(
 
                     recorder.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
-                    Some(protocol_memcache::Value::new(key, flags, None, &value))
+                    Ok(Some(protocol_memcache::Value::new(
+                        key, flags, None, &value,
+                    )))
                 } else {
                     let length = value.len();
 
                     recorder.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
-                    Some(protocol_memcache::Value::new(key, 0, None, &value))
+                    Ok(Some(protocol_memcache::Value::new(key, 0, None, &value)))
                 }
             }
             GetResponse::Miss => {
@@ -102,7 +113,7 @@ async fn run_get(
 
                 recorder.complete_miss();
                 klog_1(&"get", &key, Status::Miss, 0);
-                None
+                Ok(None)
             }
         },
         Ok(Err(e)) => {
@@ -113,15 +124,16 @@ async fn run_get(
             BACKEND_EX.increment();
 
             klog_1(&"get", &key, Status::ServerError, 0);
-            None
+            Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
-        Err(_) => {
+        Err(e) => {
+            error!("backend timeout for get: {}", e);
             // we had a timeout, incr stats and move on
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
 
             klog_1(&"get", &key, Status::Timeout, 0);
-            None
+            Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
     }
 }

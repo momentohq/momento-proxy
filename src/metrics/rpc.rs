@@ -89,22 +89,22 @@ impl RpcCallGuard {
     }
 
     pub fn complete_ok(&mut self) {
+        debug!("{} complete_ok", self.rpc);
         if let Ok(false) =
             self.recorded
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
         {
-            debug!("{} complete_ok", self.rpc);
             self.latency_ok
                 .observe(self.start_time.elapsed().as_nanos() as i64);
         }
     }
 
     pub fn complete_error(&mut self) {
+        error!("{} complete_error", self.rpc);
         if let Ok(false) =
             self.recorded
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
         {
-            debug!("{} complete_error", self.rpc);
             self.latency_error
                 .observe(self.start_time.elapsed().as_nanos() as i64);
         }

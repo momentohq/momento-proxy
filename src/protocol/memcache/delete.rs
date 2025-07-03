@@ -48,6 +48,7 @@ pub async fn delete(
             }
         }
         Ok(Err(e)) => {
+            error!("backend error for delete: {}", e);
             BACKEND_EX.increment();
 
             DELETE_EX.increment();
@@ -55,9 +56,10 @@ pub async fn delete(
 
             klog_1(&"delete", &key, Status::ServerError, 0);
 
-            Ok(Response::server_error(format!("{e}")))
+            Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
-        Err(_) => {
+        Err(e) => {
+            error!("backend timeout for delete: {}", e);
             // timeout
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
@@ -67,7 +69,7 @@ pub async fn delete(
 
             klog_1(&"delete", &key, Status::Timeout, 0);
 
-            Ok(Response::server_error("backend timeout"))
+            Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
     }
 }
