@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.12](https://github.com/momentohq/momento-proxy/compare/v0.10.11...v0.10.12) (2025-07-07)
+
+
+### Bug Fixes
+
+* memcached proxy error results from momento were getting reported as ok ([#57](https://github.com/momentohq/momento-proxy/issues/57)) ([f44a4ea](https://github.com/momentohq/momento-proxy/commit/f44a4ea784f2db028c9019d606b902be3af47f95))
+
 ## [0.10.11](https://github.com/momentohq/momento-proxy/compare/v0.10.10...v0.10.11) (2025-06-27)
 
 
