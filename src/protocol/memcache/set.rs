@@ -122,7 +122,6 @@ pub async fn set(
                 0,
             );
 
-            error!("Set request backend timeout");
             Ok(Response::server_error("backend timeout"))
         }
     }

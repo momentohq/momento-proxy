@@ -68,7 +68,6 @@ pub async fn delete(
 
             klog_1(&"delete", &key, Status::Timeout, 0);
 
-            error!("backend timeout for delete");
             Ok(Response::server_error("backend timeout"))
         }
     }

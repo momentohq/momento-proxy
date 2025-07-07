@@ -89,7 +89,6 @@ impl RpcCallGuard {
     }
 
     pub fn complete_ok(&mut self) {
-        debug!("{} complete_ok", self.rpc);
         if let Ok(false) =
             self.recorded
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
@@ -100,7 +99,6 @@ impl RpcCallGuard {
     }
 
     pub fn complete_error(&mut self) {
-        error!("{} complete_error", self.rpc);
         if let Ok(false) =
             self.recorded
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)

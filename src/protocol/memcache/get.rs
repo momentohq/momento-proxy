@@ -127,8 +127,6 @@ async fn run_get(
             Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
         Err(_) => {
-            error!("backend timeout for get");
-
             // we had a timeout, incr stats and move on
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
