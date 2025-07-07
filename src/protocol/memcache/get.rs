@@ -49,7 +49,7 @@ pub async fn get(
         if let Ok(Some(v)) = value {
             values.push(v);
         } else if let Err(e) = value {
-            return Err(Error::new(ErrorKind::Other, format!("{e}")));
+            return Ok(Response::server_error(format!("{e}")));
         }
     }
     if let Some(memory_cache) = &memory_cache {
@@ -126,14 +126,15 @@ async fn run_get(
             klog_1(&"get", &key, Status::ServerError, 0);
             Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
-        Err(e) => {
-            error!("backend timeout for get: {}", e);
+        Err(_) => {
+            error!("backend timeout for get");
+
             // we had a timeout, incr stats and move on
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
 
             klog_1(&"get", &key, Status::Timeout, 0);
-            Err(Error::new(ErrorKind::Other, format!("{e}")))
+            Err(Error::new(ErrorKind::Other, format!("backend timeout")))
         }
     }
 }

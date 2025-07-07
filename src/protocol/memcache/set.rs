@@ -88,7 +88,6 @@ pub async fn set(
             }
         }
         Ok(Err(e)) => {
-            error!("Set request backend error: {:?}", e);
             BACKEND_EX.increment();
 
             SET_EX.increment();
@@ -103,10 +102,10 @@ pub async fn set(
                 0,
             );
 
-            Err(Error::new(ErrorKind::Other, format!("{e}")))
+            error!("backend error for set: {}", e);
+            Ok(Response::server_error(format!("{e}")))
         }
-        Err(e) => {
-            error!("Set request backend timeout: {:?}", e);
+        Err(_) => {
             // timeout
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
@@ -123,7 +122,8 @@ pub async fn set(
                 0,
             );
 
-            Err(Error::new(ErrorKind::Other, format!("{e}")))
+            error!("Set request backend timeout");
+            Ok(Response::server_error("backend timeout"))
         }
     }
 }

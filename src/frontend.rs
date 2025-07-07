@@ -259,6 +259,20 @@ pub(crate) async fn handle_memcache_client_concrete(
     write_alive.store(false, Ordering::Relaxed);
 }
 
+// The memcached protocol expects us to return a reponse corresponding to
+// one of the enums, but we need the RpcGuard to report an error is the
+// response is actually an error.
+impl ResponseWrappingError for protocol_memcache::Response {
+    fn is_error(&self) -> bool {
+        match self {
+            protocol_memcache::Response::ServerError(_) => true,
+            protocol_memcache::Response::ClientError(_) => true,
+            protocol_memcache::Response::Error(_) => true,
+            _ => false,
+        }
+    }
+}
+
 async fn handle_memcache_request(
     channel: mpsc::Sender<
         std::result::Result<
@@ -279,7 +293,7 @@ async fn handle_memcache_request(
             if let Some(memory_cache) = memory_cache {
                 memory_cache.delete(r.key());
             }
-            with_rpc_call_guard(
+            with_wrapped_error_response_rpc_call_guard(
                 proxy_metrics.begin_memcached_delete(),
                 memcache::delete(&mut client, &cache_name, r),
             )
@@ -287,14 +301,14 @@ async fn handle_memcache_request(
         }
         memcache::Request::Get(ref r) => {
             let recorder = proxy_metrics.begin_memcached_get();
-            with_rpc_call_guard(
+            with_wrapped_error_response_rpc_call_guard(
                 recorder.clone(),
                 memcache::get(&mut client, &cache_name, r, flags, memory_cache, &recorder),
             )
             .await
         }
         memcache::Request::Set(ref r) => {
-            with_rpc_call_guard(
+            with_wrapped_error_response_rpc_call_guard(
                 proxy_metrics.begin_memcached_set(),
                 memcache::set(&mut client, &cache_name, r, flags, memory_cache),
             )

@@ -87,4 +87,7 @@ pub use connection::ConnectionGuard;
 pub use proxy::{
     ConnectionMetrics, DefaultProxyMetrics, MemcachedMetrics, ProxyMetrics, RespMetrics,
 };
-pub use rpc::{with_rpc_call_guard, RpcCallGuard, RpcMetrics};
+pub use rpc::{
+    with_rpc_call_guard, with_wrapped_error_response_rpc_call_guard, ResponseWrappingError,
+    RpcCallGuard, RpcMetrics,
+};
