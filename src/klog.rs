@@ -27,7 +27,7 @@ pub(crate) fn klog_1(
     response_len: usize,
 ) {
     klog!(
-        "\"{} {}\" {} {}",
+        "{{\"command\": \"{}\", \"key\": \"{}\", \"response_status\": \"{}\", \"response_size\": \"{}\"}}",
         command,
         EscapedStr::new(key),
         status as u8,
@@ -43,7 +43,7 @@ pub(crate) fn klog_2(
     response_len: usize,
 ) {
     klog!(
-        "\"{} {} {}\" {} {}",
+        "{{\"command\": \"{}\", \"key\": \"{}\", \"field\": \"{}\", \"response_status\": \"{}\", \"response_size\": \"{}\"}}",
         command,
         EscapedStr::new(key),
         EscapedStr::new(field),
@@ -62,7 +62,7 @@ pub(crate) fn klog_7(
     response_len: usize,
 ) {
     klog!(
-        "\"{} {} {} {} {}\" {} {}",
+        "{{\"command\": \"{}\", \"key\": \"{}\", \"field\": \"{}\", \"ttl\": \"{}\", \"request_size\": \"{}\", \"response_status\": \"{}\", \"response_size\": \"{}\"}}",
         command,
         EscapedStr::new(key),
         EscapedStr::new(field),
@@ -82,7 +82,7 @@ pub fn klog_set(
     response_len: usize,
 ) {
     klog!(
-        "\"set {} {} {} {}\" {} {}",
+        "{{\"command\": \"set\", \"key\": \"{}\", \"flags\": \"{}\", \"ttl\": \"{}\", \"request_size\": \"{}\", \"response_status\": \"{}\", \"response_size\": \"{}\"}}",
         EscapedStr::new(key),
         flags,
         ttl,
