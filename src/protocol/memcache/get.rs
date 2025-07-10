@@ -86,10 +86,10 @@ async fn run_get(
                 GET_KEY_HIT.increment();
 
                 let value: Vec<u8> = value.into();
-                trace_command(&"get", &key, value.len(), 0);
 
                 if flags && value.len() < 5 {
                     recorder.complete_miss();
+                    trace_command(&"get", &key, 0, 0);
                     klog_1(&"get", &key, Status::Miss, 0);
                     Ok(None)
                 } else if flags {
@@ -98,6 +98,7 @@ async fn run_get(
                     let length = value.len();
 
                     recorder.complete_hit_momento();
+                    trace_command(&"get", &key, length, 0);
                     klog_1(&"get", &key, Status::Hit, length);
                     Ok(Some(protocol_memcache::Value::new(
                         key, flags, None, &value,
@@ -106,6 +107,7 @@ async fn run_get(
                     let length = value.len();
 
                     recorder.complete_hit_momento();
+                    trace_command(&"get", &key, length, 0);
                     klog_1(&"get", &key, Status::Hit, length);
                     Ok(Some(protocol_memcache::Value::new(key, 0, None, &value)))
                 }
