@@ -84,21 +84,21 @@ pub(crate) fn trace_command(
     value_size: usize,
     ttl: i32,
 ) {
-  if let Some(start_time) = START_TIME.get() {
-    let timestamp_seconds = std::time::SystemTime::now()
-        .duration_since(*start_time)
-        .unwrap()
-        .as_secs();
-    let key_size = key.as_ref().len();
-    trace_log!(
-        "{},{},{},{},{},{},{}",
-        timestamp_seconds,
-        EscapedStr::new(key),
-        key_size,
-        value_size,
-        0,
-        command,
-        ttl
-    );
-  }
+    if let Some(start_time) = START_TIME.get() {
+        let timestamp_seconds = std::time::SystemTime::now()
+            .duration_since(*start_time)
+            .unwrap()
+            .as_secs();
+        let key_size = key.as_ref().len();
+        trace_log!(
+            "{},{},{},{},{},{},{}",
+            timestamp_seconds,
+            EscapedStr::new(key),
+            key_size,
+            value_size,
+            0,
+            command,
+            ttl
+        );
+    }
 }

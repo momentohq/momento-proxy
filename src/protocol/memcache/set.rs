@@ -50,7 +50,12 @@ pub async fn set(
     BACKEND_REQUEST.increment();
 
     // Note: observed that memcached protocol adds 4 bytes to the value, so we subtract 4 from the value length here for accuracy
-    trace_command(&"set", &key, value.len() - 4, request.ttl().get().unwrap_or(0));
+    trace_command(
+        &"set",
+        &key,
+        value.len() - 4,
+        request.ttl().get().unwrap_or(0),
+    );
 
     let ttl = request
         .ttl()
