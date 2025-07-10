@@ -92,12 +92,12 @@ pub fn klog_set(
     );
 }
 
-struct EscapedStr<'a> {
+pub struct EscapedStr<'a> {
     inner: &'a [u8],
 }
 
 impl<'a> EscapedStr<'a> {
-    fn new(input: &'a dyn AsRef<[u8]>) -> EscapedStr<'a> {
+    pub fn new(input: &'a dyn AsRef<[u8]>) -> EscapedStr<'a> {
         Self {
             inner: input.as_ref(),
         }

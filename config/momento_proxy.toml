@@ -107,3 +107,14 @@ max_size = 1073741824
 # specify the sampling ratio, 1 in N commands will be logged. Setting to '0'
 # will disable command logging.
 sample = 100
+
+# Configure the trace logging of requests sent
+
+[trace]
+# optionally, log commands to the file below
+# file = "momento-proxy.trace"
+# backup file name for use with log rotation
+backup = "momento-proxy.trace.old"
+# trigger log rotation when the file grows beyond this size (in bytes). Set this
+# option to '0' to disable log rotation.
+max_size = 1073741824

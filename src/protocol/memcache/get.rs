@@ -4,6 +4,7 @@
 
 use crate::cache::CacheValue;
 use crate::klog::{klog_1, Status};
+use crate::trace_logger::trace::trace_command;
 use crate::{Error, *};
 use futures::StreamExt;
 use momento::cache::GetResponse;
@@ -85,6 +86,7 @@ async fn run_get(
                 GET_KEY_HIT.increment();
 
                 let value: Vec<u8> = value.into();
+                trace_command(&"get", &key, value.len(), 0);
 
                 if flags && value.len() < 5 {
                     recorder.complete_miss();
@@ -111,6 +113,8 @@ async fn run_get(
             GetResponse::Miss => {
                 GET_KEY_MISS.increment();
 
+                trace_command(&"get", &key, 0, 0);
+
                 recorder.complete_miss();
                 klog_1(&"get", &key, Status::Miss, 0);
                 Ok(None)
@@ -123,6 +127,8 @@ async fn run_get(
             error!("backend error for get: {}", e);
             BACKEND_EX.increment();
 
+            trace_command(&"get", &key, 0, 0);
+
             klog_1(&"get", &key, Status::ServerError, 0);
             Err(Error::new(ErrorKind::Other, format!("{e}")))
         }
@@ -131,8 +137,10 @@ async fn run_get(
             BACKEND_EX.increment();
             BACKEND_EX_TIMEOUT.increment();
 
+            trace_command(&"get", &key, 0, 0);
+
             klog_1(&"get", &key, Status::Timeout, 0);
-            Err(Error::new(ErrorKind::Other, format!("backend timeout")))
+            Err(Error::new(ErrorKind::Other, "backend timeout"))
         }
     }
 }

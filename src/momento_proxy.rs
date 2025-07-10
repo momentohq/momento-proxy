@@ -1,4 +1,6 @@
 use crate::default_buffer_size;
+use crate::trace_logger::config::TraceConfig;
+use crate::trace_logger::config::TraceLog;
 use crate::PAGESIZE;
 use core::num::NonZeroU64;
 use std::net::AddrParseError;
@@ -48,6 +50,8 @@ pub struct MomentoProxyConfig {
     debug: Debug,
     #[serde(default)]
     klog: Klog,
+    #[serde(default)]
+    trace: TraceLog,
 }
 
 #[derive(Default, Clone, Copy, Serialize, Deserialize, Debug)]
@@ -162,6 +166,10 @@ impl MomentoProxyConfig {
     pub fn threads(&self) -> Option<usize> {
         self.proxy.threads
     }
+
+    pub fn use_cache_trace_logging(&self) -> bool {
+        self.trace.file().is_some()
+    }
 }
 
 impl AdminConfig for MomentoProxyConfig {
@@ -179,5 +187,11 @@ impl DebugConfig for MomentoProxyConfig {
 impl KlogConfig for MomentoProxyConfig {
     fn klog(&self) -> &Klog {
         &self.klog
+    }
+}
+
+impl TraceConfig for MomentoProxyConfig {
+    fn trace(&self) -> &TraceLog {
+        &self.trace
     }
 }

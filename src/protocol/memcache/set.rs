@@ -4,6 +4,7 @@
 
 use crate::cache::CacheValue;
 use crate::klog::{klog_set, Status};
+use crate::trace_logger::trace::trace_command;
 use crate::{Error, *};
 use momento::cache::SetRequest;
 use protocol_memcache::*;
@@ -42,11 +43,12 @@ pub async fn set(
         // (1) A proxy process restart doesn't degrade performance (cache warms on read)
         // (2) Multiple proxies each keep a warm local cache, even if writes are done by others
         let flags = if flags { request.flags() } else { 0 };
-        let value = protocol_memcache::Value::new(&key, flags, None, &request.value());
+        let value = protocol_memcache::Value::new(&key, flags, None, request.value());
         memory_cache.set(key.to_vec(), CacheValue::Memcached { value });
     }
 
     BACKEND_REQUEST.increment();
+    trace_command(&"set", &key, value.len(), request.ttl().get().unwrap_or(0));
 
     let ttl = request
         .ttl()

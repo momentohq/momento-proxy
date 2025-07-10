@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::klog::{klog_1, Status};
+use crate::trace_logger::trace::trace_command;
 use crate::{Error, *};
 use protocol_memcache::*;
 
@@ -24,6 +25,7 @@ pub async fn delete(
     }
 
     BACKEND_REQUEST.increment();
+    trace_command(&"delete", &key, 0, 0);
 
     match timeout(
         Duration::from_millis(200),

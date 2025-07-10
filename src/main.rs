@@ -46,6 +46,7 @@ mod listener;
 mod metrics;
 mod momento_proxy;
 mod protocol;
+mod trace_logger;
 
 pub use metrics::*;
 
@@ -137,8 +138,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Default::default()
     };
 
-    // initialize logging
-    let mut log = configure_logging(&config);
+    // initialize command logging or cache-trace logging
+    let mut log = if config.use_cache_trace_logging() {
+        trace_logger::trace::configure_logging(&config)
+    } else {
+        configure_logging(&config)
+    };
 
     info!("starting momento-proxy v{}", env!("CARGO_PKG_VERSION"));
 

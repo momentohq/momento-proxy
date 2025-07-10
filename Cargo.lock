@@ -1414,6 +1414,7 @@ dependencies = [
  "protocol-admin",
  "protocol-memcache",
  "protocol-resp",
+ "ringlog",
  "serde",
  "session",
  "storage-types",

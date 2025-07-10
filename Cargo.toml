@@ -37,6 +37,7 @@ goodmetrics = "7.1.1"
 tokio-rustls = "0.26.2"
 webpki-roots = "1.0.0"
 tonic = "0.13.1"
+ringlog = "0.7.0"
 
 [profile.release]
 opt-level = 3
