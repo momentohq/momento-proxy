@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.13](https://github.com/momentohq/momento-proxy/compare/v0.10.12...v0.10.13) (2025-07-11)
+
+
+### Bug Fixes
+
+* memcached set command log should use value size without flags ([#61](https://github.com/momentohq/momento-proxy/issues/61)) ([b020487](https://github.com/momentohq/momento-proxy/commit/b0204878d63b5869fba7b0b9e83ed375af7aed70))
+
 ## [0.10.12](https://github.com/momentohq/momento-proxy/compare/v0.10.11...v0.10.12) (2025-07-07)
 
 
