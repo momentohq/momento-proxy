@@ -23,6 +23,11 @@ pub async fn set(
     }
 
     let key = (*request.key()).to_owned();
+
+    // Recording length of passed in value for command logging purposes.
+    // The value does not yet have flags embedded.
+    let value_len = request.value().len();
+
     let value = if flags {
         let mut value = request.flags().to_be_bytes().to_vec();
         value.extend_from_slice(request.value());
@@ -67,21 +72,20 @@ pub async fn set(
                     &key,
                     request.flags(),
                     request.ttl().get().unwrap_or(0),
-                    value.len(),
+                    value_len,
                     Status::Stored,
                     0,
                 );
 
                 Ok(Response::stored(true))
             } else {
-                // TODO(brian): this doesn't log the correct size now
                 klog_set(
                     &key,
                     request.flags(),
                     ttl.map(|v| v.as_secs()).unwrap_or(0) as _,
-                    value.len(),
+                    value_len,
                     Status::Stored,
-                    value.len(),
+                    value_len,
                 );
 
                 Ok(Response::stored(false))
@@ -97,7 +101,7 @@ pub async fn set(
                 &key,
                 request.flags(),
                 request.ttl().get().unwrap_or(0),
-                value.len(),
+                value_len,
                 Status::ServerError,
                 0,
             );
@@ -117,7 +121,7 @@ pub async fn set(
                 &key,
                 request.flags(),
                 request.ttl().get().unwrap_or(0),
-                value.len(),
+                value_len,
                 Status::Timeout,
                 0,
             );
