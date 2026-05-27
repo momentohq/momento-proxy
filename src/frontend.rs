@@ -693,7 +693,7 @@ pub(crate) async fn handle_resp_client(
                         crate::protocol::resp::momento_error_to_resp_error(
                             &mut response_buf,
                             command,
-                            error,
+                            *error,
                         );
 
                         false

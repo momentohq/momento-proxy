@@ -10,7 +10,7 @@ pub type ProxyResult<T = ()> = Result<T, ProxyError>;
 #[derive(Debug, Error)]
 pub enum ProxyError {
     #[error("momento error: {0}")]
-    Momento(#[source] MomentoError),
+    Momento(#[source] Box<MomentoError>),
     #[error("io error: {0}")]
     Io(#[source] std::io::Error),
     #[error("timeout: {0}")]
@@ -31,7 +31,7 @@ impl ProxyError {
 
 impl From<MomentoError> for ProxyError {
     fn from(value: MomentoError) -> Self {
-        ProxyError::Momento(value)
+        ProxyError::Momento(Box::new(value))
     }
 }
 
