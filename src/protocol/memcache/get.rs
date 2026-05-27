@@ -97,7 +97,10 @@ async fn run_get(
                     recorder.complete_hit_momento();
                     klog_1(&"get", &key, Status::Hit, length);
                     Ok(Some(protocol_memcache::Value::new(
-                        key, flags, None, &value[4..],
+                        key,
+                        flags,
+                        None,
+                        &value[4..],
                     )))
                 } else {
                     let length = value.len();
@@ -123,7 +126,7 @@ async fn run_get(
             BACKEND_EX.increment();
 
             klog_1(&"get", &key, Status::ServerError, 0);
-            Err(Error::new(ErrorKind::Other, format!("{e}")))
+            Err(Error::other(format!("{e}")))
         }
         Err(_) => {
             // we had a timeout, incr stats and move on
@@ -131,7 +134,7 @@ async fn run_get(
             BACKEND_EX_TIMEOUT.increment();
 
             klog_1(&"get", &key, Status::Timeout, 0);
-            Err(Error::new(ErrorKind::Other, format!("backend timeout")))
+            Err(Error::other("backend timeout"))
         }
     }
 }

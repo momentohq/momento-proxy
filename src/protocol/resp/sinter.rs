@@ -10,7 +10,7 @@ use protocol_resp::{SetIntersect, SINTER, SINTER_EX};
 use std::collections::HashSet;
 use tokio::time;
 
-use crate::ProxyResult;
+use crate::{ProxyError, ProxyResult};
 
 use super::update_method_metrics;
 
@@ -24,10 +24,9 @@ pub async fn sinter(
         let timeout = Duration::from_millis(200);
 
         // Note: the resp parser validates that SetInter has at least one key.
-        let (head, rest) = req
-            .keys()
-            .split_first()
-            .expect("got an invalid set difference request");
+        let (head, rest) = req.keys().split_first().ok_or_else(|| {
+            ProxyError::from(std::io::Error::other("invalid set intersect request"))
+        })?;
         let head = &**head;
 
         let response = time::timeout(timeout, client.set_fetch(cache_name, head)).await??;

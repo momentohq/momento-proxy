@@ -14,62 +14,111 @@ use goodmetrics::{GaugeFactory, SumHandle};
 
 use super::{RpcCallGuard, RpcMetrics};
 
+/// Metrics for tracking connection lifecycle events.
 pub trait ConnectionMetrics: Clone + Send + Sync + 'static {
+    /// Begins tracking a new connection; returns a guard that records closure on drop.
     fn begin_connection(&self) -> ConnectionGuard;
 }
 
+/// Metrics for tracking Memcached protocol RPC calls.
 pub trait MemcachedMetrics: Clone + Send + Sync + 'static {
+    /// Begins tracking a `get` RPC call.
     fn begin_memcached_get(&self) -> RpcCallGuard;
+    /// Begins tracking a `set` RPC call.
     fn begin_memcached_set(&self) -> RpcCallGuard;
+    /// Begins tracking a `delete` RPC call.
     fn begin_memcached_delete(&self) -> RpcCallGuard;
+    /// Begins tracking an unimplemented command RPC call.
     fn begin_memcached_unimplemented(&self) -> RpcCallGuard;
 }
 
+/// Metrics for tracking RESP protocol RPC calls.
 pub trait RespMetrics: Clone + Send + Sync + 'static {
+    /// Begins tracking a `del` RPC call.
     fn begin_resp_del(&self) -> RpcCallGuard;
+    /// Begins tracking a `get` RPC call.
     fn begin_resp_get(&self) -> RpcCallGuard;
+    /// Begins tracking a `hdel` RPC call.
     fn begin_resp_hdel(&self) -> RpcCallGuard;
+    /// Begins tracking a `hexists` RPC call.
     fn begin_resp_hexists(&self) -> RpcCallGuard;
+    /// Begins tracking a `hget` RPC call.
     fn begin_resp_hget(&self) -> RpcCallGuard;
+    /// Begins tracking a `hgetall` RPC call.
     fn begin_resp_hgetall(&self) -> RpcCallGuard;
+    /// Begins tracking a `hincrby` RPC call.
     fn begin_resp_hincrby(&self) -> RpcCallGuard;
+    /// Begins tracking a `hkeys` RPC call.
     fn begin_resp_hkeys(&self) -> RpcCallGuard;
+    /// Begins tracking a `hlen` RPC call.
     fn begin_resp_hlen(&self) -> RpcCallGuard;
+    /// Begins tracking a `hmget` RPC call.
     fn begin_resp_hmget(&self) -> RpcCallGuard;
+    /// Begins tracking a `hset` RPC call.
     fn begin_resp_hset(&self) -> RpcCallGuard;
+    /// Begins tracking a `hvals` RPC call.
     fn begin_resp_hvals(&self) -> RpcCallGuard;
+    /// Begins tracking a `lindex` RPC call.
     fn begin_resp_lindex(&self) -> RpcCallGuard;
+    /// Begins tracking a `llen` RPC call.
     fn begin_resp_llen(&self) -> RpcCallGuard;
+    /// Begins tracking a `lpop` RPC call.
     fn begin_resp_lpop(&self) -> RpcCallGuard;
+    /// Begins tracking a `lrange` RPC call.
     fn begin_resp_lrange(&self) -> RpcCallGuard;
+    /// Begins tracking a `lpush` RPC call.
     fn begin_resp_lpush(&self) -> RpcCallGuard;
+    /// Begins tracking a `rpush` RPC call.
     fn begin_resp_rpush(&self) -> RpcCallGuard;
+    /// Begins tracking a `rpop` RPC call.
     fn begin_resp_rpop(&self) -> RpcCallGuard;
+    /// Begins tracking a `set` RPC call.
     fn begin_resp_set(&self) -> RpcCallGuard;
+    /// Begins tracking a `sadd` RPC call.
     fn begin_resp_sadd(&self) -> RpcCallGuard;
+    /// Begins tracking a `srem` RPC call.
     fn begin_resp_srem(&self) -> RpcCallGuard;
+    /// Begins tracking a `sdiff` RPC call.
     fn begin_resp_sdiff(&self) -> RpcCallGuard;
+    /// Begins tracking a `sunion` RPC call.
     fn begin_resp_sunion(&self) -> RpcCallGuard;
+    /// Begins tracking a `sinter` RPC call.
     fn begin_resp_sinter(&self) -> RpcCallGuard;
+    /// Begins tracking a `smembers` RPC call.
     fn begin_resp_smembers(&self) -> RpcCallGuard;
+    /// Begins tracking a `sismember` RPC call.
     fn begin_resp_sismember(&self) -> RpcCallGuard;
+    /// Begins tracking a `zcard` RPC call.
     fn begin_resp_zcard(&self) -> RpcCallGuard;
+    /// Begins tracking a `zincrby` RPC call.
     fn begin_resp_zincrby(&self) -> RpcCallGuard;
+    /// Begins tracking a `zscore` RPC call.
     fn begin_resp_zscore(&self) -> RpcCallGuard;
+    /// Begins tracking a `zmscore` RPC call.
     fn begin_resp_zmscore(&self) -> RpcCallGuard;
+    /// Begins tracking a `zrem` RPC call.
     fn begin_resp_zrem(&self) -> RpcCallGuard;
+    /// Begins tracking a `zrank` RPC call.
     fn begin_resp_zrank(&self) -> RpcCallGuard;
+    /// Begins tracking a `zrange` RPC call.
     fn begin_resp_zrange(&self) -> RpcCallGuard;
+    /// Begins tracking a `zadd` RPC call.
     fn begin_resp_zadd(&self) -> RpcCallGuard;
+    /// Begins tracking a `zrevrank` RPC call.
     fn begin_resp_zrevrank(&self) -> RpcCallGuard;
+    /// Begins tracking a `zcount` RPC call.
     fn begin_resp_zcount(&self) -> RpcCallGuard;
+    /// Begins tracking a `zunionstore` RPC call.
     fn begin_resp_zunionstore(&self) -> RpcCallGuard;
+    /// Begins tracking an unimplemented RESP command.
     fn begin_resp_unimplemented(&self) -> RpcCallGuard;
 }
 
+/// Combined proxy metrics trait covering connections, Memcached, and RESP RPCs.
 pub trait ProxyMetrics: ConnectionMetrics + MemcachedMetrics + RespMetrics {}
 impl<T: ConnectionMetrics + MemcachedMetrics + RespMetrics> ProxyMetrics for T {}
 
+/// Default implementation of [`ProxyMetrics`] backed by goodmetrics histograms.
 #[derive(Clone, Debug)]
 pub struct DefaultProxyMetrics {
     // connection handles

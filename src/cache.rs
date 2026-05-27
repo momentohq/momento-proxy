@@ -91,7 +91,7 @@ impl MCache {
         KeyType: Borrow<Q>,
         Q: std::hash::Hash + Eq + ?Sized,
     {
-        self.cache.get(&key)
+        self.cache.get(key)
     }
 
     pub fn set(&self, key: KeyType, value: impl Into<CacheValue>) {

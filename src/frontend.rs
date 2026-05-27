@@ -77,6 +77,7 @@ pub(crate) async fn handle_memcache_client(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn handle_memcache_client_concrete(
     socket: tokio::net::TcpStream,
     client: CacheClient,
@@ -264,15 +265,16 @@ pub(crate) async fn handle_memcache_client_concrete(
 // response is actually an error.
 impl ResponseWrappingError for protocol_memcache::Response {
     fn is_error(&self) -> bool {
-        match self {
-            protocol_memcache::Response::ServerError(_) => true,
-            protocol_memcache::Response::ClientError(_) => true,
-            protocol_memcache::Response::Error(_) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            protocol_memcache::Response::ServerError(_)
+                | protocol_memcache::Response::ClientError(_)
+                | protocol_memcache::Response::Error(_)
+        )
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn handle_memcache_request(
     channel: mpsc::Sender<
         std::result::Result<
@@ -303,7 +305,7 @@ async fn handle_memcache_request(
             let recorder = proxy_metrics.begin_memcached_get();
             with_wrapped_error_response_rpc_call_guard(
                 recorder.clone(),
-                memcache::get(&mut client, &cache_name, r, flags, memory_cache, &recorder),
+                memcache::get(&client, &cache_name, r, flags, memory_cache, &recorder),
             )
             .await
         }
@@ -317,7 +319,7 @@ async fn handle_memcache_request(
         _ => {
             debug!("unsupported command: {}", request);
             with_rpc_call_guard(proxy_metrics.begin_memcached_unimplemented(), async {
-                Err(Error::new(ErrorKind::Other, "unsupported"))
+                Err(Error::other("unsupported"))
             })
             .await
         }
@@ -691,7 +693,7 @@ pub(crate) async fn handle_resp_client(
                         crate::protocol::resp::momento_error_to_resp_error(
                             &mut response_buf,
                             command,
-                            error,
+                            *error,
                         );
 
                         false

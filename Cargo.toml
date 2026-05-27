@@ -22,7 +22,7 @@ libc = "0.2.149"
 logger = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "logger" }
 metriken = "0.7.0"
 moka = { version = "0.12", features = ["sync"] }
-momento = "0.52.0"
+momento = "0.64.2"
 pelikan-net = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "pelikan-net", features = ["metrics"] }
 protocol-admin = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "protocol-admin" }
 protocol-memcache = { git = "https://github.com/pelikan-io/pelikan.git", rev = "4afdd11", package = "protocol-memcache" }

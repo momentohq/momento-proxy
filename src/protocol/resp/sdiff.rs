@@ -9,7 +9,7 @@ use momento::{cache::SetFetchResponse, CacheClient};
 use protocol_resp::{SetDiff, SDIFF, SDIFF_EX};
 use tokio::time;
 
-use crate::ProxyResult;
+use crate::{ProxyError, ProxyResult};
 
 use super::update_method_metrics;
 
@@ -23,10 +23,9 @@ pub async fn sdiff(
         let timeout = Duration::from_millis(200);
 
         // Note: the resp parser validates that SetDiff has at least one key.
-        let (head, rest) = req
-            .keys()
-            .split_first()
-            .expect("got an invalid set difference request");
+        let (head, rest) = req.keys().split_first().ok_or_else(|| {
+            ProxyError::from(std::io::Error::other("invalid set difference request"))
+        })?;
         let head = &**head;
 
         let response = time::timeout(timeout, client.set_fetch(cache_name, head)).await??;

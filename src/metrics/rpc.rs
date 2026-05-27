@@ -15,6 +15,7 @@ use super::util::{
     proxy_request_latency_timeout_histogram,
 };
 
+/// Latency histogram handles for a single RPC type.
 #[derive(Clone, Debug)]
 pub struct RpcMetrics {
     rpc: &'static str,
@@ -27,6 +28,7 @@ pub struct RpcMetrics {
 }
 
 impl RpcMetrics {
+    /// Creates histogram handles for the given RPC name.
     pub fn new(gauge_factory: &GaugeFactory, rpc: &'static str) -> Self {
         Self {
             rpc,
@@ -39,6 +41,7 @@ impl RpcMetrics {
         }
     }
 
+    /// Starts a new RPC call tracking guard for this metric.
     pub fn record_api_call(&self) -> RpcCallGuard {
         RpcCallGuard::new(
             self.rpc,
@@ -52,6 +55,7 @@ impl RpcMetrics {
     }
 }
 
+/// Guard that records latency when a single RPC call completes or is dropped (timeout).
 #[derive(Clone)]
 pub struct RpcCallGuard {
     rpc: &'static str,
@@ -66,6 +70,7 @@ pub struct RpcCallGuard {
 }
 
 impl RpcCallGuard {
+    /// Creates a new guard, capturing the start time.
     pub fn new(
         rpc: &'static str,
         latency_ok: HistogramHandle,
@@ -88,6 +93,7 @@ impl RpcCallGuard {
         }
     }
 
+    /// Records a successful RPC completion.
     pub fn complete_ok(&mut self) {
         if let Ok(false) =
             self.recorded
@@ -98,6 +104,7 @@ impl RpcCallGuard {
         }
     }
 
+    /// Records a failed RPC completion.
     pub fn complete_error(&mut self) {
         if let Ok(false) =
             self.recorded
@@ -108,6 +115,7 @@ impl RpcCallGuard {
         }
     }
 
+    /// Records completion based on whether `result` is `Ok` or `Err`.
     pub fn complete<T, E>(&mut self, result: &Result<T, E>) {
         match result {
             Ok(_) => self.complete_ok(),
@@ -115,6 +123,7 @@ impl RpcCallGuard {
         };
     }
 
+    /// Records a cache miss. May be called multiple times for multi-key requests.
     pub fn complete_miss(&mut self) {
         // Might observe multiple hits if multiple keys are requested, so update
         // the recorded flag but don't check it before recording the latency.
@@ -126,6 +135,7 @@ impl RpcCallGuard {
             .observe(self.start_time.elapsed().as_nanos() as i64);
     }
 
+    /// Records a hit served from the local in-process memory cache.
     pub fn complete_hit_mcache(&mut self) {
         // Might observe multiple hits if multiple keys are requested, so update
         // the recorded flag but don't check it before recording the latency.
@@ -137,6 +147,7 @@ impl RpcCallGuard {
             .observe(self.start_time.elapsed().as_nanos() as i64);
     }
 
+    /// Records a hit served from the Momento backend.
     pub fn complete_hit_momento(&mut self) {
         // Might observe multiple hits if multiple keys are requested, so update
         // the recorded flag but don't check it before recording the latency.
@@ -162,6 +173,7 @@ impl Drop for RpcCallGuard {
     }
 }
 
+/// Awaits `fut` and records its success or failure via `recorder`.
 pub async fn with_rpc_call_guard<T, E, F>(mut recorder: RpcCallGuard, fut: F) -> Result<T, E>
 where
     F: Future<Output = Result<T, E>>,
@@ -171,10 +183,13 @@ where
     result
 }
 
+/// Implemented by response types that embed a protocol-level error.
 pub trait ResponseWrappingError {
+    /// Returns `true` if the response represents an error.
     fn is_error(&self) -> bool;
 }
 
+/// Awaits `fut` and records ok/error based on whether the successful response wraps an error.
 pub async fn with_wrapped_error_response_rpc_call_guard<R: ResponseWrappingError, E, F>(
     mut recorder: RpcCallGuard,
     fut: F,
