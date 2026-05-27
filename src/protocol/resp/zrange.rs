@@ -29,8 +29,7 @@ pub async fn zrange(
     update_method_metrics(&ZRANGE, &ZRANGE_EX, async move {
         if *req.range_type() == RangeType::ByLex {
             klog_1(&"zrange", &req.key(), Status::ServerError, 0);
-            return Err(ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(ProxyError::from(std::io::Error::other(
                 "Momento proxy does not support BYLEX for ZRANGE",
             )));
         }
@@ -119,10 +118,7 @@ pub async fn zrange(
             }
             _ => {
                 klog_1(&"zrange", &req.key(), Status::ServerError, 0);
-                return Err(ProxyError::from(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "malformed command",
-                )));
+                return Err(ProxyError::from(std::io::Error::other("malformed command")));
             }
         };
 

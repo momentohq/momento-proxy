@@ -16,17 +16,12 @@ use serde::{Deserialize, Serialize};
 
 use std::io::Read;
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Default, Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Protocol {
+    #[default]
     Memcache,
     Resp,
-}
-
-impl Default for Protocol {
-    fn default() -> Self {
-        Self::Memcache
-    }
 }
 
 // support for memcache flags is on by default
@@ -78,6 +73,7 @@ pub struct Cache {
     buffer_size: NonZeroUsize,
 }
 
+#[allow(clippy::expect_used)]
 const fn four() -> NonZeroUsize {
     NonZeroUsize::new(4).expect("4 is nonzero")
 }
@@ -147,10 +143,7 @@ impl MomentoProxyConfig {
             Ok(t) => Ok(t),
             Err(e) => {
                 eprintln!("{e}");
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Error parsing config",
-                ))
+                Err(std::io::Error::other("Error parsing config"))
             }
         }
     }

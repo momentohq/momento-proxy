@@ -33,8 +33,7 @@ pub async fn zadd(
             || req.optional_args().lt
         {
             klog_1(&"zadd", &req.key(), Status::ServerError, 0);
-            return Err(ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(ProxyError::from(std::io::Error::other(
                 "Momento proxy does not support CH, XX, NX, GT, or LT optional arguments",
             )));
         }

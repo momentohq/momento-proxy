@@ -5,8 +5,6 @@
 use momento::MomentoError;
 use std::future::Future;
 
-use crate::error::ProxyError;
-
 pub(crate) fn momento_error_to_resp_error(buf: &mut Vec<u8>, command: &str, error: MomentoError) {
     use crate::BACKEND_EX;
 
@@ -27,26 +25,16 @@ pub(crate) async fn update_method_metrics<T, E>(
     })
 }
 
-pub(crate) fn parse_score_boundary_as_integer(value: &[u8]) -> Result<i32, ProxyError> {
+pub(crate) fn parse_score_boundary_as_integer(value: &[u8]) -> Result<i32, std::io::Error> {
     let index = std::str::from_utf8(value)
-        .map_err(|_| {
-            ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "ZRANGE index is not valid utf8",
-            ))
-        })?
+        .map_err(|_| std::io::Error::other("ZRANGE index is not valid utf8"))?
         .parse::<i32>()
-        .map_err(|_| {
-            ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "ZRANGE index is not an integer",
-            ))
-        })?;
+        .map_err(|_| std::io::Error::other("ZRANGE index is not an integer"))?;
     Ok(index)
 }
 
 // Returns a tuple of (value, is_exclusive)
-pub(crate) fn parse_score_boundary_as_float(value: &[u8]) -> Result<(f64, bool), ProxyError> {
+pub(crate) fn parse_score_boundary_as_float(value: &[u8]) -> Result<(f64, bool), std::io::Error> {
     // First check if the value is +inf or -inf
     if value == b"+inf" {
         return Ok((f64::INFINITY, false));
@@ -63,19 +51,9 @@ pub(crate) fn parse_score_boundary_as_float(value: &[u8]) -> Result<(f64, bool),
     };
 
     let score = std::str::from_utf8(number)
-        .map_err(|_| {
-            ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "ZRANGE score is not valid utf8",
-            ))
-        })?
+        .map_err(|_| std::io::Error::other("ZRANGE score is not valid utf8"))?
         .parse::<f64>()
-        .map_err(|_| {
-            ProxyError::from(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "ZRANGE score is not a float",
-            ))
-        })?;
+        .map_err(|_| std::io::Error::other("ZRANGE score is not a float"))?;
 
     if exclusive_symbol {
         Ok((score, true))

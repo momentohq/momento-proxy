@@ -7,6 +7,7 @@ use momento::CacheClientBuilder;
 use momento_proxy::Protocol;
 use pelikan_net::{TCP_ACCEPT, TCP_CLOSE, TCP_CONN_CURR};
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn listener(
     listener: TcpListener,
     client_builder: CacheClientBuilder<ReadyToBuild>,

@@ -5,12 +5,14 @@ use std::sync::{
 
 use goodmetrics::SumHandle;
 
+/// Guard that records connection open/close counts; records closure when dropped.
 pub struct ConnectionGuard {
     connections_closed: SumHandle,
     total_active_connections_count: Arc<AtomicI64>,
 }
 
 impl ConnectionGuard {
+    /// Creates a guard, incrementing the opened counter and active connection count.
     pub fn new(
         connections_opened: SumHandle,
         connections_closed: SumHandle,

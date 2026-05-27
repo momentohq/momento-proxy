@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+//! Momento proxy: translates Memcache/RESP protocol requests to Momento gRPC.
+
 #[macro_use]
 extern crate logger;
 
@@ -31,7 +33,9 @@ use tokio::time::timeout;
 
 use crate::error::{ProxyError, ProxyResult};
 
+/// One kilobyte in bytes.
 pub const KB: usize = 1024;
+/// One megabyte in bytes.
 pub const MB: usize = 1024 * KB;
 
 const S: u64 = 1_000_000_000; // one second in nanoseconds
@@ -51,8 +55,8 @@ pub use metrics::*;
 
 // NOTES:
 //
-// This is a simple proxy which translates requests between memcache protocol
-// and Momento gRPC. This allows for a standard memcache client to communicate
+// This is a simple proxy which translates requests between Memcached or RESP protocol
+// and Momento gRPC. This allows for a standard Memcached or RESP client to communicate
 // with the Momento cache service without any code changes.
 //
 // The following environment variables are necessary to configure the proxy
@@ -60,13 +64,13 @@ pub use metrics::*;
 //
 // MOMENTO_API_KEY - the Momento API key to use for authentication
 
-// Default for linux, should work well enough for the majority of platforms.
+/// Default for linux, should work well enough for the majority of platforms.
 pub const PAGESIZE: usize = 4096;
-// the default buffer size is matched to the upper-bound on TLS fragment size as
-// per RFC 5246 https://datatracker.ietf.org/doc/html/rfc5246#section-6.2.1
+/// the default buffer size is matched to the upper-bound on TLS fragment size as
+/// per RFC 5246 https://datatracker.ietf.org/doc/html/rfc5246#section-6.2.1
 pub const INITIAL_BUFFER_SIZE: usize = 16 * KB;
 
-// sets an upper bound on how large a request can be
+/// sets an upper bound on how large a request can be
 pub const MAX_REQUEST_SIZE: usize = 100 * MB;
 
 // The Momento cache client requires providing a default TTL. For the current
@@ -80,9 +84,11 @@ const DEFAULT_TTL: Duration = Duration::from_secs(3600);
 /// item within the momento cache.
 const COLLECTION_TTL: CollectionTtl = CollectionTtl::new(None, false);
 
-// we interpret TTLs the same way memcached would
+/// we interpret TTLs the same way memcached would
 pub const TIME_TYPE: TimeType = TimeType::Memcache;
 
+/// helper function to get the default buffer size as a NonZeroUsize, which is used in the config struct
+#[allow(clippy::expect_used)]
 pub const fn default_buffer_size() -> NonZeroUsize {
     NonZeroUsize::new(INITIAL_BUFFER_SIZE).expect("initial buffer size cannot be zero")
 }
@@ -207,8 +213,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .enable_all()
         .worker_threads(1)
         .thread_name("pelikan_admin")
-        .build()
-        .expect("failed to launch async runtime");
+        .build()?;
 
     let mut runtime = Builder::new_multi_thread();
 
@@ -230,10 +235,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let runtime = runtime
-        .enable_all()
-        .build()
-        .expect("failed to launch tokio runtime");
+    let runtime = runtime.enable_all().build()?;
 
     // spawn the proxy metrics
     let proxy_metrics = runtime.block_on(async { ProxyMetricsBuilder::new().build().await });
@@ -245,10 +247,7 @@ async fn spawn(
     config: MomentoProxyConfig,
     proxy_metrics: impl ProxyMetrics,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let admin_addr = config
-        .admin()
-        .socket_addr()
-        .expect("bad admin listen address");
+    let admin_addr = config.admin().socket_addr()?;
     let admin_listener = TcpListener::bind(&admin_addr).await?;
     info!("starting proxy admin listener on: {}", admin_addr);
 
@@ -257,9 +256,10 @@ async fn spawn(
         eprintln!("environment variable `MOMENTO_API_KEY` is not set");
         std::process::exit(1);
     }
-    let momento_api_key = std::env::var("MOMENTO_API_KEY").expect("MOMENTO_API_KEY must be set");
-    let credential_provider =
-        CredentialProvider::from_string(momento_api_key).unwrap_or_else(|e| {
+    let momento_api_key = std::env::var("MOMENTO_API_KEY")?;
+    // TODO: accept v2 api keys instead of v1, which is same format as disposable tokens
+    let credential_provider = CredentialProvider::from_disposable_token(momento_api_key)
+        .unwrap_or_else(|e| {
             eprintln!("failed to initialize credential provider. error: {e}");
             std::process::exit(1);
         });
@@ -272,7 +272,11 @@ async fn spawn(
     for i in 0..config.caches().len() {
         let config = config.clone();
 
-        let cache = config.caches().get(i).unwrap().clone();
+        let Some(cache) = config.caches().get(i) else {
+            eprintln!("cache config not found for index {i}");
+            std::process::exit(1);
+        };
+        let cache = cache.clone();
         let addr = match cache.socket_addr() {
             Ok(v) => v,
             Err(e) => {
@@ -330,8 +334,17 @@ async fn spawn(
                 cache.memory_cache_ttl_seconds(),
                 cache.buffer_size(),
             );
-            let tcp_listener =
-                TcpListener::from_std(tcp_listener).expect("could not convert to tokio listener");
+            let tcp_listener = match TcpListener::from_std(tcp_listener) {
+                Ok(l) => l,
+                Err(e) => {
+                    error!(
+                        "could not convert tcp listener for cache `{}` to tokio listener: {}",
+                        cache.cache_name(),
+                        e
+                    );
+                    std::process::exit(1);
+                }
+            };
 
             let local_cache_bytes = cache.memory_cache_bytes();
             let local_cache = if 0 < local_cache_bytes {
