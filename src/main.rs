@@ -257,12 +257,6 @@ async fn spawn(
         std::process::exit(1);
     }
     let momento_api_key = std::env::var("MOMENTO_API_KEY")?;
-    // TODO: accept v2 api keys instead of v1, which is same format as disposable tokens
-    let credential_provider = CredentialProvider::from_disposable_token(momento_api_key)
-        .unwrap_or_else(|e| {
-            eprintln!("failed to initialize credential provider. error: {e}");
-            std::process::exit(1);
-        });
 
     if config.caches().is_empty() {
         eprintln!("no caches specified in the config");
@@ -289,10 +283,28 @@ async fn spawn(
             }
         };
 
+        let primary_endpoint = cache.primary_endpoint();
+        if primary_endpoint.is_empty() {
+            eprintln!(
+                "primary endpoint is not set for cache `{}`. Please set the `primary_endpoint` field in the config file for this cache.",
+                cache.cache_name(),
+            );
+            std::process::exit(1);
+        }
+        let credential_provider =
+            CredentialProvider::from_api_key_v2(momento_api_key.clone(), primary_endpoint)
+                .unwrap_or_else(|e| {
+                    eprintln!(
+                        "failed to initialize credential provider for cache `{}`: {e} (MOMENTO_API_KEY must be a v2 API key)",
+                        cache.cache_name()
+                    );
+                    std::process::exit(1);
+                });
+
         let client_builder = CacheClient::builder()
             .default_ttl(DEFAULT_TTL)
             .configuration(configurations::Laptop::latest())
-            .credential_provider(credential_provider.clone())
+            .credential_provider(credential_provider)
             .with_num_connections(cache.connection_count());
 
         let tcp_listener = match std::net::TcpListener::bind(addr) {
