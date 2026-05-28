@@ -71,6 +71,8 @@ pub struct Cache {
     memory_cache_ttl_seconds: u64,
     #[serde(default = "default_buffer_size")]
     buffer_size: NonZeroUsize,
+    #[serde(default)]
+    primary_endpoint: String,
 }
 
 #[allow(clippy::expect_used)]
@@ -130,6 +132,11 @@ impl Cache {
         // rounds the buffer size up to the next nearest multiple of the
         // pagesize
         std::cmp::max(1, self.buffer_size.get()).div_ceil(PAGESIZE)
+    }
+
+    /// Returns the primary Momento service endpoint that requests will be sent to
+    pub fn primary_endpoint(&self) -> String {
+        self.primary_endpoint.clone()
     }
 }
 

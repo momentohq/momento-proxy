@@ -36,6 +36,9 @@ default_ttl = 900
 # Defaults to 16 KiB. Can be tuned for performance based on item size distribution for the cache.
 # Values are rounded to the nearest multiple of 4KiB before use.
 # buffer_size = 16384
+# The primary Momento service endpoint to connect to for this cache. 
+# See https://docs.momentohq.com/platform/regions for the full list of available SDK endpoints.
+primary_endpoint = "cell-us-east-1-1.prod.a.momentohq.com"
 
 # For compatibility reasons, by default memcache flags are stored with the value. If you are
 # __certain__ you do not need this, you can opt-out and save 4 bytes per stored value. If any
@@ -58,6 +61,9 @@ default_ttl = 1800
 # connection_count = 4
 # the protocol can be "memcache" or "resp" (Redis), the default is memcache
 protocol = "memcache"
+# The primary Momento service endpoint to connect to for this cache. 
+# See https://docs.momentohq.com/platform/regions for the full list of available SDK endpoints.
+primary_endpoint = "cell-us-east-1-1.prod.a.momentohq.com"
 
 # For compatibility reasons, by default memcache flags are stored with the value. If you are
 # __certain__ you do not need this, you can opt-out and save 4 bytes per stored value. If any
@@ -80,6 +86,9 @@ default_ttl = 300
 # connection_count = 4
 # the protocol can be "memcache" or "resp" (Redis), the default is memcache
 protocol = "resp"
+# The primary Momento service endpoint to connect to for this cache. 
+# See https://docs.momentohq.com/platform/regions for the full list of available SDK endpoints.
+primary_endpoint = "cell-us-east-1-1.prod.a.momentohq.com"
 
 # Configure the proxy's logging
 
