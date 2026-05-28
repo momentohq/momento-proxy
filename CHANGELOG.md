@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/momentohq/momento-proxy/compare/v0.10.13...v0.11.0) (2026-05-28)
+
+
+### Features
+
+* require v2 api key and service endpoint ([#68](https://github.com/momentohq/momento-proxy/issues/68)) ([2764517](https://github.com/momentohq/momento-proxy/commit/27645177436cb4c6531f3b82f0fd54dca5d907a0))
+
+
+### Bug Fixes
+
+* avoid to_vec() during flag extraction ([#63](https://github.com/momentohq/momento-proxy/issues/63)) ([7fd84c0](https://github.com/momentohq/momento-proxy/commit/7fd84c0d2c0dbf4358bd0a650997991b2b8eaaf8))
+* re-enable lint PR check and fix lint errors ([#65](https://github.com/momentohq/momento-proxy/issues/65)) ([7fd8b86](https://github.com/momentohq/momento-proxy/commit/7fd8b86baf4339d78de1013ad6d4b38d51382506))
+
 ## [0.10.13](https://github.com/momentohq/momento-proxy/compare/v0.10.12...v0.10.13) (2025-07-11)
 
 
