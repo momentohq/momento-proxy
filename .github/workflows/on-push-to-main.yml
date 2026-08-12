@@ -20,6 +20,13 @@ jobs:
       tag_name: ${{ steps.rp.outputs.tag_name }}
       version: ${{ steps.rp.outputs.version }}
     steps:
+      - name: Generate release bot token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.MOMENTO_RELEASE_APP_ID }}
+          private-key: ${{ secrets.MOMENTO_RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -27,7 +34,7 @@ jobs:
         id: rp
         uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.MOMENTO_MACHINE_USER_GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
   publish-docker:
     name: Publish Docker Image
