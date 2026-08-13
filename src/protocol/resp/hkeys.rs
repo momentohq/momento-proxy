@@ -45,7 +45,7 @@ pub async fn hkeys(
 
                 response_buf.extend_from_slice(format!("*{}\r\n", map.len()).as_bytes());
 
-                for (field, _value) in map.iter() {
+                for field in map.keys() {
                     let field_header = format!("${}\r\n", field.len());
 
                     response_buf.extend_from_slice(field_header.as_bytes());
