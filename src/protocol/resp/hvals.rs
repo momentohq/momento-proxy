@@ -45,7 +45,7 @@ pub async fn hvals(
 
                 response_buf.extend_from_slice(format!("*{}\r\n", map.len()).as_bytes());
 
-                for (_filed, value) in map.iter() {
+                for value in map.values() {
                     let value_header = format!("${}\r\n", value.len());
 
                     response_buf.extend_from_slice(value_header.as_bytes());
