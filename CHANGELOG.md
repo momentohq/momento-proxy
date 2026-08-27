@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/momentohq/momento-proxy/compare/v0.11.0...v0.11.1) (2026-08-27)
+
+
+### Miscellaneous
+
+* bump crates for security advisories ([#71](https://github.com/momentohq/momento-proxy/issues/71)) ([83cbae7](https://github.com/momentohq/momento-proxy/commit/83cbae7d2610d1d3162aea841d08fe859e3cada2))
+* retire the machine-user release token ([#69](https://github.com/momentohq/momento-proxy/issues/69)) ([bb7751e](https://github.com/momentohq/momento-proxy/commit/bb7751e7386e4c9da94fe41e5721d42ed2463833))
+
 ## [0.11.0](https://github.com/momentohq/momento-proxy/compare/v0.10.13...v0.11.0) (2026-05-28)
 
 
